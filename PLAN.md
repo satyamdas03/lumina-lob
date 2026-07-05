@@ -126,7 +126,7 @@ Each checkpoint is small enough for one focused session. After each, we stop and
 ### Phase 5: Visualization
 
 - [x] **CP5.1** Matplotlib depth-ladder plot
-- [ ] **CP5.2** Time-series plot of mid price, spread, and trades
+- [x] **CP5.2** Time-series plot of mid price, spread, and trades
 - [ ] **CP5.3** Real-time streaming visualizer for simulation
 - [ ] **CP5.4** GIF/MP4 export of simulation replay
 

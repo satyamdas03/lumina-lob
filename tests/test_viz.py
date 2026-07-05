@@ -6,7 +6,7 @@ import pytest
 matplotlib.use("Agg")  # non-interactive backend for tests
 
 from lumina_lob.core import MatchingEngine, Order, OrderBook, OrderType, Side
-from lumina_lob.viz import plot_depth_ladder
+from lumina_lob.viz import plot_depth_ladder, plot_simulation_history
 
 
 def test_plot_depth_ladder_returns_figure():
@@ -50,3 +50,56 @@ def test_plot_depth_ladder_accepts_cpp_book():
     assert fig is not None
     assert ax is not None
     assert len(ax.patches) > 0
+
+
+def test_plot_simulation_history_returns_figure():
+    """Verify the history plot accepts a list of step records."""
+    history = [
+        {"step": 1, "mid_price": 100.0, "spread": 2, "trade_count": 0, "trade_volume": 0},
+        {"step": 2, "mid_price": 101.0, "spread": 1, "trade_count": 1, "trade_volume": 10},
+        {"step": 3, "mid_price": 100.5, "spread": 3, "trade_count": 2, "trade_volume": 25},
+    ]
+    fig, axes = plot_simulation_history(history)
+    assert fig is not None
+    assert len(axes) == 3
+    assert axes[0].get_ylabel() == "Mid price"
+    assert axes[1].get_ylabel() == "Spread"
+    assert axes[2].get_ylabel() == "Volume"
+
+
+def test_plot_simulation_history_empty_raises():
+    """An empty history cannot be plotted."""
+    with pytest.raises(ValueError, match="history is empty"):
+        plot_simulation_history([])
+
+
+def test_plot_simulation_history_missing_columns_raises():
+    """Required columns must be present."""
+    history = [{"step": 1, "mid_price": 100.0}]
+    with pytest.raises(ValueError, match="missing required columns"):
+        plot_simulation_history(history)
+
+
+def test_plot_simulation_history_empty_dataframe_raises():
+    """An empty pandas DataFrame raises the same empty-history error."""
+    import pandas as pd
+
+    df = pd.DataFrame(columns=["step", "mid_price", "spread", "trade_count", "trade_volume"])
+    with pytest.raises(ValueError, match="history is empty"):
+        plot_simulation_history(df)
+
+
+def test_plot_simulation_history_accepts_dataframe():
+    """The history plot also accepts a pandas DataFrame."""
+    import pandas as pd
+
+    df = pd.DataFrame(
+        [
+            {"step": 1, "mid_price": 100.0, "spread": 2, "trade_count": 0, "trade_volume": 0},
+            {"step": 2, "mid_price": 101.0, "spread": 1, "trade_count": 1, "trade_volume": 5},
+        ]
+    )
+    fig, axes = plot_simulation_history(df)
+    assert fig is not None
+    assert len(axes) == 3
+

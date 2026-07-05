@@ -108,6 +108,11 @@ class OrderBook:
         )
         return True
 
+    def full_depth(self, side: Side) -> Dict[int, int]:
+        """Return all price levels and total qty for a side."""
+        levels = self._side_levels(side)
+        return {p: levels[p].total_qty for p in sorted(levels.keys(), reverse=(side == Side.BID))}
+
     def depth(self, side: Side, n: int = 5) -> Dict[int, int]:
         """Return top N price levels and total qty."""
         levels = self._side_levels(side)
@@ -116,6 +121,24 @@ class OrderBook:
 
     def snapshot(self) -> Dict[str, Dict[int, int]]:
         return {"bids": self.depth(Side.BID), "asks": self.depth(Side.ASK)}
+
+    def full_snapshot(self) -> Dict[str, Dict[int, int]]:
+        return {"bids": self.full_depth(Side.BID), "asks": self.full_depth(Side.ASK)}
+
+    def to_pandas(self):
+        """Return book depth as pandas DataFrame with columns [side, price, qty, order_count]."""
+        import pandas as pd
+
+        rows = []
+        for side in (Side.BID, Side.ASK):
+            for price, level in self._side_levels(side).items():
+                rows.append({
+                    "side": side.name,
+                    "price": price,
+                    "qty": level.total_qty,
+                    "order_count": len(level),
+                })
+        return pd.DataFrame(rows)
 
     def __len__(self) -> int:
         return len(self.orders)

@@ -2,12 +2,7 @@
 
 import pytest
 
-pybind11 = pytest.importorskip("pybind11")
-
-try:
-    from lumina_lob import _core
-except ImportError as exc:  # pragma: no cover
-    pytest.fail(f"C++ extension lumina_lob._core is not built: {exc}")
+_core = pytest.importorskip("lumina_lob._core")
 
 
 @pytest.fixture

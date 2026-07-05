@@ -15,6 +15,8 @@ dependencies = [
     "pandas>=2.0",
     "requests>=2.31",
     "databento>=0.80.0",
+    "gymnasium>=0.29",
+    "stable-baselines3>=2.3",
 ]
 
 [project.optional-dependencies]
@@ -23,10 +25,6 @@ dev = [
     "pytest-cov>=4.0",
     "ruff>=0.4.0",
     "mypy>=1.0",
-]
-rl = [
-    "gymnasium>=0.29",
-    "stable-baselines3>=2.3",
 ]
 viz = [
     "matplotlib>=3.7",

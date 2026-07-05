@@ -6,7 +6,13 @@ import pytest
 matplotlib.use("Agg")  # non-interactive backend for tests
 
 from lumina_lob.core import MatchingEngine, Order, OrderBook, OrderType, Side
-from lumina_lob.viz import plot_depth_ladder, plot_simulation_history
+from lumina_lob.viz import (
+    SimulationAnimator,
+    plot_depth_ladder,
+    plot_simulation_history,
+    run_animation,
+)
+
 
 
 def test_plot_depth_ladder_returns_figure():
@@ -102,4 +108,68 @@ def test_plot_simulation_history_accepts_dataframe():
     fig, axes = plot_simulation_history(df)
     assert fig is not None
     assert len(axes) == 3
+
+
+def _make_simple_simulation():
+    from lumina_lob.agents import NoiseTrader
+    from lumina_lob.simulation import Simulation
+
+    return Simulation(
+        agents=[NoiseTrader(arrival_rate=10.0, size_min=1, size_max=5, tick_size=1.0, seed=1)],
+        seed=2,
+    )
+
+
+def test_simulation_animator_steps_and_redraws():
+    """The animator advances the simulation and updates both panels."""
+    sim = _make_simple_simulation()
+    animator = SimulationAnimator(sim, top_n=3, history_window=5)
+    assert animator.fig is not None
+    assert animator.ax_depth is not None
+    assert animator.ax_price is not None
+
+    for _ in range(3):
+        animator.update()
+
+    assert len(sim.history) == 3
+    assert animator._price_line is not None
+    x_data, y_data = animator._price_line.get_data()
+    assert len(x_data) == 3
+    assert len(y_data) == 3
+
+
+def test_run_animation_returns_funcanimation():
+    """run_animation returns a matplotlib FuncAnimation object."""
+    from matplotlib.animation import FuncAnimation
+
+    sim = _make_simple_simulation()
+    anim = run_animation(sim, n_steps=2, top_n=3)
+    assert isinstance(anim, FuncAnimation)
+    # Advance a couple of frames manually to confirm the callback is wired.
+    # FuncAnimation draws the first frame at creation, so history already has 1 entry.
+    anim._step(0)  # type: ignore[attr-defined]
+    anim._step(1)  # type: ignore[attr-defined]
+    assert len(sim.history) == 3
+
+
+def test_draw_depth_ladder_empty_book():
+    """Internal depth-ladder renderer shows an empty title when the book is empty."""
+    import matplotlib.pyplot as plt
+    from lumina_lob.viz.realtime import _draw_depth_ladder
+
+    fig, ax = plt.subplots()
+    book = OrderBook()
+    _draw_depth_ladder(ax, book, top_n=3)
+    assert "empty" in ax.get_title().lower()
+
+
+def test_update_price_axis_with_empty_history():
+    """Internal price-axis update is a no-op when no history is available."""
+    sim = _make_simple_simulation()
+    animator = SimulationAnimator(sim, top_n=3, history_window=5)
+    # Calling before any steps should not crash even though history is empty.
+    animator._update_price_axis()
+    x_data, y_data = animator._price_line.get_data()
+    assert len(x_data) == 0
+    assert len(y_data) == 0
 

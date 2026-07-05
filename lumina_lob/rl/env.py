@@ -19,9 +19,8 @@ class MarketMakerEnv(gym.Env):
     """A Gymnasium environment where an agent acts as a single market maker.
 
     The observation combines the current limit-order-book state, the agent's
-    inventory, and its mark-to-market P&L.  The action space is intentionally a
-    placeholder in this checkpoint (CP3.1); the agent's quotes will be wired to
-    actions in CP3.2.
+    inventory, and its mark-to-market P&L.  The action is a continuous vector
+    that controls bid/ask quote offsets and sizes.
 
     Parameters
     ----------
@@ -32,6 +31,14 @@ class MarketMakerEnv(gym.Env):
         has initial liquidity.
     tick_size:
         Price tick size used for rounding and normalisation.
+    max_quote_offset_ticks:
+        Maximum number of ticks away from the mid price the agent may quote.
+    min_quote_size:
+        Minimum quantity per quote.
+    max_quote_size:
+        Maximum quantity per quote.
+    inventory_penalty:
+        Coefficient for the quadratic inventory penalty applied each step.
     seed:
         Optional global RNG seed.
     """
@@ -44,6 +51,7 @@ class MarketMakerEnv(gym.Env):
         max_quote_offset_ticks: int = 5,
         min_quote_size: int = 10,
         max_quote_size: int = 100,
+        inventory_penalty: float = 0.0,
         seed: Optional[int] = None,
     ) -> None:
         super().__init__()
@@ -53,6 +61,7 @@ class MarketMakerEnv(gym.Env):
         self.max_quote_offset_ticks = max(0, int(max_quote_offset_ticks))
         self.min_quote_size = max(1, int(min_quote_size))
         self.max_quote_size = max(self.min_quote_size, int(max_quote_size))
+        self.inventory_penalty = float(inventory_penalty)
         self._seed = seed
 
         self.observation_features: List[str] = [
@@ -88,6 +97,7 @@ class MarketMakerEnv(gym.Env):
         self._avg_fill_price = 0.0
         self._current_step = 0
         self._reference_price = 100.0
+        self._previous_total_pnl = 0.0
         self._pending_action: Optional[np.ndarray] = None
         self._proxy = self._AgentProxy(self)
 
@@ -137,6 +147,8 @@ class MarketMakerEnv(gym.Env):
             self.simulation.step()
             self._current_step += 1
 
+        self._previous_total_pnl = self._total_pnl()
+
         observation = self._get_observation()
         info: Dict = {"reference_price": self._reference_price}
         return observation, info
@@ -158,7 +170,7 @@ class MarketMakerEnv(gym.Env):
         self._reference_price = float(metrics["reference_price"])
 
         observation = self._get_observation()
-        reward = 0.0
+        reward = self._compute_reward()
         terminated = False
         truncated = self._current_step >= self.max_steps
         info = {
@@ -232,6 +244,21 @@ class MarketMakerEnv(gym.Env):
             if mid is not None:
                 return float(mid)
         return float(self._reference_price)
+
+    def _total_pnl(self) -> float:
+        """Mark-to-market value of cash plus inventory at the current mid price."""
+        mid = self._reference_price
+        if self.simulation is not None:
+            mid = self.simulation.book.mid_price if self.simulation.book.mid_price is not None else mid
+        return float(self._cash + self._inventory * mid)
+
+    def _compute_reward(self) -> float:
+        """Return the change in mark-to-market P&L minus inventory penalty."""
+        total_pnl = self._total_pnl()
+        pnl_delta = total_pnl - self._previous_total_pnl
+        self._previous_total_pnl = total_pnl
+        penalty = self.inventory_penalty * (self._inventory ** 2)
+        return float(pnl_delta - penalty)
 
     def _action_to_quotes(
         self, action: np.ndarray, reference_price: float

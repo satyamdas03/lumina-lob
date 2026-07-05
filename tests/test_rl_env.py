@@ -243,3 +243,44 @@ def test_cancel_agent_quotes_no_simulation_is_safe():
     env = MarketMakerEnv()
     env.simulation = None
     env._cancel_agent_quotes()  # should not raise
+
+
+def test_compute_reward_flat_no_position():
+    env = MarketMakerEnv(inventory_penalty=0.0)
+    env.reset(seed=1)
+    env._previous_total_pnl = 0.0
+    env._cash = 0.0
+    env._inventory = 0.0
+    env._reference_price = 100.0
+    assert env._compute_reward() == pytest.approx(0.0)
+
+
+def test_compute_reward_inventory_penalty():
+    env = MarketMakerEnv(inventory_penalty=0.01)
+    env.reset(seed=1)
+    env._cash = 0.0
+    env._inventory = 10.0
+    env._reference_price = 100.0
+    env._previous_total_pnl = env._cash + env._inventory * env._reference_price
+    reward = env._compute_reward()
+    # No P&L change, but penalty = 0.01 * 10^2 = 1.0
+    assert reward == pytest.approx(-1.0)
+
+
+def test_compute_reward_price_appreciation():
+    env = MarketMakerEnv(inventory_penalty=0.0)
+    env.reset(seed=1)
+    # Buy 10 shares at 100
+    env._update_inventory(Side.BID, 10, 100.0)
+    env._reference_price = 101.0
+    env.simulation.book  # ensure book exists
+    env._previous_total_pnl = env._cash + env._inventory * 100.0
+    # Mark to market at 101 gives +10 unrealised gain
+    assert env._compute_reward() == pytest.approx(10.0)
+
+
+def test_step_returns_nonzero_reward_type():
+    env = MarketMakerEnv(max_steps=5, warmup_steps=1, seed=1)
+    env.reset(seed=1)
+    _, reward, *_ = env.step(zero_action())
+    assert isinstance(reward, float)

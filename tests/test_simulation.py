@@ -142,6 +142,7 @@ def test_to_dataframe_shape_and_columns():
         "spread",
         "trade_count",
         "trade_volume",
+        "signed_volume",
         "book_size",
     }
     assert set(df.columns) == expected
@@ -166,6 +167,24 @@ def test_can_supply_prebuilt_book_and_engine():
     sim.run(3)
     assert sim.book is book
     assert sim.engine is engine
+
+
+def test_signed_volume_matches_bullish_informed_trades():
+    mm = MarketMaker(spread_half_width=2, quote_size=10, tick_size=1.0)
+    informed = InformedTrader(
+        signal="bullish",
+        trade_size=10,
+        participation_rate=1.0,
+        order_type="market",
+        seed=16,
+    )
+    ref = ReferencePriceProcess(volatility=0.0, seed=16)
+    sim = Simulation(agents=[mm, informed], reference_price=ref)
+    sim.run(5)
+    total_signed = sum(r["signed_volume"] for r in sim.history)
+    total_volume = sum(r["trade_volume"] for r in sim.history)
+    assert total_signed == total_volume
+    assert total_signed > 0
 
 
 def test_history_records_each_step():

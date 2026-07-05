@@ -77,6 +77,13 @@ class Simulation:
         new_trades = self.book.trades[pre_trade_count:]
         trade_count = len(new_trades)
         trade_volume = sum(qty for _, _, qty in new_trades)
+        signed_volume = 0
+        for aggressor_id, _, qty in new_trades:
+            side = self._order_side.get(aggressor_id)
+            if side == Side.BID:
+                signed_volume += qty
+            elif side == Side.ASK:
+                signed_volume -= qty
 
         record = {
             "step": len(self.history) + 1,
@@ -87,6 +94,7 @@ class Simulation:
             "spread": self.book.spread,
             "trade_count": trade_count,
             "trade_volume": trade_volume,
+            "signed_volume": signed_volume,
             "book_size": len(self.book),
         }
         self.history.append(record)

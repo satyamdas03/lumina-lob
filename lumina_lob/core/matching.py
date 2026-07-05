@@ -112,6 +112,16 @@ class MatchingEngine:
             resting.fill(amount)
             level.total_qty -= amount
             self.book.trades.append((order.order_id, resting.order_id, amount))
+            self.book.event_log.log_fill(
+                order_id=order.order_id,
+                counterparty_id=resting.order_id,
+                trade_qty=amount,
+                price=level.price,
+                side=order.side.name,
+                filled_qty=order.filled_qty,
+                best_bid=self.book.best_bid,
+                best_ask=self.book.best_ask,
+            )
             if resting.is_filled:
                 level.remove(resting)
                 self.book.orders.pop(resting.order_id, None)

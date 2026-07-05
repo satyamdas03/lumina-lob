@@ -1,9 +1,9 @@
 """Order book with bid/ask price levels."""
 from __future__ import annotations
 
-from collections import defaultdict
 from typing import Dict, Optional, Tuple
 
+from lumina_lob.core.event_log import EventLog
 from lumina_lob.core.order import Order, Side
 from lumina_lob.core.price_level import PriceLevel
 
@@ -11,11 +11,12 @@ from lumina_lob.core.price_level import PriceLevel
 class OrderBook:
     """Price-time priority order book."""
 
-    def __init__(self) -> None:
+    def __init__(self, event_log: Optional[EventLog] = None) -> None:
         self.bids: Dict[int, PriceLevel] = {}
         self.asks: Dict[int, PriceLevel] = {}
         self.orders: Dict[int, Order] = {}
         self.trades: list[Tuple[int, int, int]] = []  # (buy_id, sell_id, qty)
+        self.event_log = event_log if event_log is not None else EventLog()
 
     # ---------- helpers ----------
     @property
@@ -54,6 +55,14 @@ class OrderBook:
         else:
             level = self.asks.setdefault(order.price, PriceLevel(order.price))
         level.append(order)
+        self.event_log.log_add(
+            order_id=order.order_id,
+            side=order.side.name,
+            price=order.price,
+            qty=order.qty,
+            best_bid=self.best_bid,
+            best_ask=self.best_ask,
+        )
 
     def cancel(self, order_id: int) -> bool:
         """Cancel resting order. Return True if cancelled."""
@@ -67,6 +76,11 @@ class OrderBook:
         level.remove(order)
         if level.is_empty():
             del levels[order.price]
+        self.event_log.log_cancel(
+            order_id=order_id,
+            best_bid=self.best_bid,
+            best_ask=self.best_ask,
+        )
         return True
 
     def modify(self, order_id: int, new_qty: int) -> bool:
@@ -86,6 +100,12 @@ class OrderBook:
             self.orders.pop(order_id, None)
         if level.is_empty():
             del levels[order.price]
+        self.event_log.log_modify(
+            order_id=order_id,
+            new_qty=new_qty,
+            best_bid=self.best_bid,
+            best_ask=self.best_ask,
+        )
         return True
 
     def depth(self, side: Side, n: int = 5) -> Dict[int, int]:

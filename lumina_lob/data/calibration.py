@@ -30,6 +30,14 @@ class CalibratedParams:
         Minimum price increment inferred from the spread / price grid.
     time_unit:
         Unit used for ``arrival_rate`` (``"S"`` = seconds, ``"min"`` = minutes, etc.).
+    permanent_impact:
+        Permanent price-impact coefficient per unit signed volume, if price data
+        was supplied.
+    temporary_impact:
+        Temporary price-impact coefficient per unit signed volume, if price data
+        was supplied.
+    impact_decay:
+        Decay factor for the propagator-style temporary impact residual.
     """
 
     arrival_rate: float
@@ -40,6 +48,9 @@ class CalibratedParams:
     mean_spread: Optional[float] = None
     tick_size: float = 0.01
     time_unit: str = "S"
+    permanent_impact: Optional[float] = None
+    temporary_impact: Optional[float] = None
+    impact_decay: Optional[float] = None
 
 
 def calibrate(
@@ -49,13 +60,17 @@ def calibrate(
     time_unit: str = "S",
     bid_col: str = "bid_px_00",
     ask_col: str = "ask_px_00",
+    price_col: str = "price",
+    side_col: str = "side",
 ) -> CalibratedParams:
     """Estimate agent parameters from a trades DataFrame and optional quotes.
 
     Parameters
     ----------
     trades:
-        DataFrame with at least ``timestamp`` and ``size`` columns.
+        DataFrame with at least ``timestamp`` and ``size`` columns. If ``price_col``
+        and ``side_col`` are present, propagator-style impact coefficients are also
+        estimated.
     quotes:
         Optional DataFrame with at least ``timestamp``, ``bid_col`` and ``ask_col``.
     size_method:
@@ -66,6 +81,10 @@ def calibrate(
         ``"min"``, ``"H"``.
     bid_col, ask_col:
         Column names for best bid and ask in ``quotes``.
+    price_col:
+        Column name for trade prices in ``trades``.
+    side_col:
+        Column name for trade side in ``trades``.
 
     Returns
     -------
@@ -80,10 +99,13 @@ def calibrate(
     size_result = _fit_size_distribution(trades["size"], size_method)
     spread = None
     tick_size = 0.01
+    impact_result = {}
     if quotes is not None:
         _validate_quote_columns(quotes, bid_col, ask_col)
         tick_size = _estimate_tick_size(quotes, bid_col, ask_col)
         spread = _estimate_mean_spread(quotes, bid_col, ask_col)
+    if price_col in trades.columns and side_col in trades.columns:
+        impact_result = _fit_propagator_impact(trades[price_col], _signed_volume(trades, side_col))
 
     return CalibratedParams(
         arrival_rate=arrival_rate,
@@ -92,6 +114,7 @@ def calibrate(
         tick_size=tick_size,
         time_unit=time_unit,
         **size_result,
+        **impact_result,
     )
 
 
@@ -166,3 +189,102 @@ def _estimate_tick_size(quotes: pd.DataFrame, bid_col: str, ask_col: str) -> flo
     if positive_diffs.size == 0:
         return 0.01
     return float(positive_diffs.min())
+
+
+def _signed_volume(trades: pd.DataFrame, side_col: str) -> np.ndarray:
+    """Convert trade sizes to signed volumes using the side column."""
+    sizes = np.asarray(trades["size"], dtype=float)
+    signs = _sign_from_side(trades[side_col])
+    return sizes * signs
+
+
+def _sign_from_side(series: pd.Series) -> np.ndarray:
+    """Map side labels to +1 (buy), -1 (sell) or 0 (unknown)."""
+    values = series.to_numpy()
+    # Fast path for numeric signs.
+    if pd.api.types.is_numeric_dtype(series):
+        numeric = np.asarray(values, dtype=float)
+        return np.where(numeric > 0, 1, np.where(numeric < 0, -1, 0))
+
+    lowered = np.asarray([str(v).lower().strip() for v in values])
+    buy_mask = np.isin(lowered, ["buy", "bid", "long", "b", "1", "+1"])
+    sell_mask = np.isin(lowered, ["sell", "ask", "short", "s", "-1"])
+    return np.where(buy_mask, 1, np.where(sell_mask, -1, 0))
+
+
+def _fit_propagator_impact(prices: pd.Series, signed_volumes: np.ndarray) -> dict:
+    """Estimate propagator-style impact coefficients from price and signed volume.
+
+    The model is:
+
+        dprice_t = permanent * q_t + temporary * exposure_{t-1} + noise_t
+        exposure_t = q_t + decay * exposure_{t-1}
+
+    where ``exposure_t`` is the accumulated temporary-impact footprint of signed
+    volume.  For each candidate ``decay`` in a fixed grid we build the exposure
+    series, then solve a 2-variable least-squares problem for ``permanent`` and
+    ``temporary``.  The candidate with the lowest residual sum of squares is
+    returned.  This avoids the window-bias issues of cumulative estimators and
+    handles both purely permanent and mixed temporary/permanent data.
+    """
+    prices = np.asarray(prices, dtype=float)
+    q = np.asarray(signed_volumes, dtype=float)
+    if prices.size != q.size or prices.size < 2:
+        return {
+            "permanent_impact": None,
+            "temporary_impact": None,
+            "impact_decay": None,
+        }
+
+    dprice = np.diff(prices)
+    q_lag = q[1:]  # volume associated with each observed price change
+
+    if not np.any(q_lag != 0):
+        return {
+            "permanent_impact": None,
+            "temporary_impact": None,
+            "impact_decay": None,
+        }
+
+    decay_candidates = np.linspace(0.05, 0.95, 19)
+    best = {"rss": np.inf}
+    for decay in decay_candidates:
+        exposure = _build_exposure(q, decay)[1:]
+        X = np.column_stack([q_lag, exposure])
+        # Remove any rows with NaN/Inf before fitting.
+        mask = np.isfinite(X).all(axis=1) & np.isfinite(dprice)
+        Xf = X[mask]
+        yf = dprice[mask]
+        if Xf.shape[0] < 2 or np.linalg.matrix_rank(Xf) < 2:
+            continue
+        coeffs, *_ = np.linalg.lstsq(Xf, yf, rcond=None)
+        pred = Xf @ coeffs
+        rss = float(np.sum((yf - pred) ** 2))
+        if rss < best["rss"]:
+            best = {
+                "rss": rss,
+                "decay": float(decay),
+                "permanent": float(coeffs[0]),
+                "temporary": float(coeffs[1]),
+            }
+
+    if best["rss"] is np.inf:
+        return {
+            "permanent_impact": None,
+            "temporary_impact": None,
+            "impact_decay": None,
+        }
+
+    return {
+        "permanent_impact": best["permanent"],
+        "temporary_impact": best["temporary"],
+        "impact_decay": best["decay"],
+    }
+
+
+def _build_exposure(q: np.ndarray, decay: float) -> np.ndarray:
+    """Build the temporary-impact exposure series ``exposure_t = q_t + decay * exposure_{t-1}``."""
+    exposure = np.zeros_like(q, dtype=float)
+    for t in range(1, q.size):
+        exposure[t] = q[t] + decay * exposure[t - 1]
+    return exposure

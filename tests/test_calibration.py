@@ -230,3 +230,144 @@ def test_time_unit_seconds_validation():
 
     with pytest.raises(ValueError, match="unsupported time_unit"):
         _time_unit_seconds("week")
+
+
+def test_impact_calibration_pure_permanent():
+    """Only permanent impact should be recovered; temporary should be near zero."""
+    n = 50
+    q = np.tile([10.0, -10.0], n // 2)
+    p0 = 100.0
+    permanent = 0.02
+    prices = p0 + np.cumsum(permanent * q)
+    trades = pd.DataFrame(
+        {
+            "timestamp": pd.date_range("2024-01-01", periods=n, freq="1s"),
+            "size": np.abs(q),
+            "price": prices,
+            "side": np.where(q > 0, "buy", "sell"),
+        }
+    )
+    params = calibrate(trades)
+
+    assert params.permanent_impact == pytest.approx(permanent, rel=1e-9)
+    assert params.temporary_impact is not None
+    assert abs(params.temporary_impact) < 1e-9
+    # With no temporary component, any candidate decay is equally good.
+    assert 0.05 <= params.impact_decay <= 0.95
+
+
+def test_impact_calibration_with_temporary_decay():
+    """Calibrated coefficients should be close to the known data-generating process."""
+    n = 200
+    rng = np.random.default_rng(7)
+    q = rng.choice([-10.0, 10.0], size=n)
+    permanent = 0.01
+    temporary = 0.03
+    decay = 0.85
+    prices = np.zeros(n)
+    prices[0] = 100.0
+    residual = 0.0
+    for t in range(1, n):
+        impact = permanent * q[t] + temporary * q[t] + residual
+        prices[t] = prices[t - 1] + impact
+        residual = (temporary * q[t] + residual) * decay
+
+    trades = pd.DataFrame(
+        {
+            "timestamp": pd.date_range("2024-01-01", periods=n, freq="1s"),
+            "size": np.abs(q),
+            "price": prices,
+            "side": np.where(q > 0, "buy", "sell"),
+        }
+    )
+    params = calibrate(trades)
+
+    assert params.permanent_impact is not None
+    assert params.temporary_impact is not None
+    assert params.impact_decay is not None
+    assert params.permanent_impact == pytest.approx(permanent, rel=0.2)
+    assert params.temporary_impact == pytest.approx(temporary, rel=0.2)
+    assert params.impact_decay == pytest.approx(decay, abs=0.15)
+
+
+def _make_directional_trades(side_values) -> pd.DataFrame:
+    n = len(side_values)
+    q = np.array(
+        [10.0 if str(v).lower().startswith(("b", "1", "+")) else -10.0 for v in side_values]
+    )
+    permanent = 0.02
+    prices = 100.0 + np.cumsum(permanent * q)
+    return pd.DataFrame(
+        {
+            "timestamp": pd.date_range("2024-01-01", periods=n, freq="1s"),
+            "size": np.full(n, 10),
+            "price": prices,
+            "side": side_values,
+        }
+    )
+
+
+def test_impact_calibration_uses_numeric_side():
+    trades = _make_directional_trades([1] * 20 + [-1] * 20)
+    params = calibrate(trades)
+    assert params.permanent_impact is not None
+    assert params.permanent_impact > 0
+    assert abs(params.temporary_impact) < 1e-9
+
+
+def test_impact_calibration_uses_string_side():
+    trades = _make_directional_trades(["BUY"] * 20 + ["SELL"] * 20)
+    params = calibrate(trades)
+    assert params.permanent_impact is not None
+    assert params.permanent_impact > 0
+    assert abs(params.temporary_impact) < 1e-9
+
+
+def test_impact_skipped_without_price_or_side():
+    trades = pd.DataFrame(
+        {
+            "timestamp": pd.date_range("2024-01-01", periods=4, freq="1s"),
+            "size": [10, 10, 10, 10],
+        }
+    )
+    params = calibrate(trades)
+    assert params.permanent_impact is None
+    assert params.temporary_impact is None
+    assert params.impact_decay is None
+
+
+def test_impact_skipped_when_signed_volume_zero():
+    trades = pd.DataFrame(
+        {
+            "timestamp": pd.date_range("2024-01-01", periods=4, freq="1s"),
+            "size": [10, 10, 10, 10],
+            "price": [100.0, 100.0, 100.0, 100.0],
+            "side": ["unknown", "unknown", "unknown", "unknown"],
+        }
+    )
+    params = calibrate(trades)
+    assert params.permanent_impact is None
+    assert params.temporary_impact is None
+    assert params.impact_decay is None
+
+
+def test_fit_propagator_impact_insufficient_data():
+    from lumina_lob.data.calibration import _fit_propagator_impact
+
+    result = _fit_propagator_impact(np.array([100.0]), np.array([1.0]))
+    assert result["permanent_impact"] is None
+    assert result["temporary_impact"] is None
+    assert result["impact_decay"] is None
+
+
+def test_fit_propagator_impact_underidentified():
+    """Two observations give a 1x2 design matrix, so the model cannot be fit."""
+    from lumina_lob.data.calibration import _fit_propagator_impact
+
+    result = _fit_propagator_impact(
+        np.array([100.0, 100.1]),
+        np.array([10.0, 10.0]),
+    )
+    assert result["permanent_impact"] is None
+    assert result["temporary_impact"] is None
+    assert result["impact_decay"] is None

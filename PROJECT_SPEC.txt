@@ -1,0 +1,161 @@
+================================================================================
+PROJECT SPEC: LUMINA LOB
+Limit Order Book Simulator with Market-Making & Reinforcement Learning
+================================================================================
+
+PROJECT MISSION STATEMENT
+--------------------------------------------------------------------------------
+Build the most complete, production-grade educational limit order book (LOB)
+simulator available in open-source. It will demonstrate deep understanding of
+market microstructure, matching engines, market impact, adverse selection, and
+algorithmic market making — the exact core business of Jane Street, Citadel
+Securities, Optiver, and IMC.
+
+WHAT WE ARE BUILDING
+--------------------------------------------------------------------------------
+A tick-level LOB simulator with:
+1. Price-time priority matching engine implemented from scratch
+2. Realistic agent-based market participants
+3. Market impact model calibrated against real tick data
+4. Market-making agents with inventory risk and quoting skew
+5. Reinforcement-learning market-maker training environment
+6. C++ port of the hot path with published Python-vs-C++ benchmarks
+7. Real-time WebGL/matplotlib visualization of book evolution
+8. Reproducible backtests with transaction-cost accounting
+
+THE MARKET GAP THIS CLOSES
+--------------------------------------------------------------------------------
+- Existing open-source LOB simulators are either too academic (no realistic
+  agents) or too simplistic (no market impact, no latency, no adverse selection).
+- There is no clean Python/C++ hybrid simulator designed specifically for:
+  * RL-based market making research
+  * Adverse-selection analysis
+  * Latency/throughput benchmarking
+  * Educational microstructure demonstrations
+- This project fills that gap with measurable performance claims.
+
+WHY THIS GETS YOU HIRED AT A QUANT FIRM
+--------------------------------------------------------------------------------
+1. It proves you understand how markets actually work at the tick level.
+2. You can explain price-time priority, queue position, spread capture,
+   adverse selection, and inventory risk using a system you built.
+3. The C++ benchmark proves systems-performance thinking.
+4. The RL agent proves you can frame market making as a decision problem.
+5. In interviews you can say: "I built the simulator I trained on" — owning the
+   end-to-end stack.
+
+CORE FEATURES & MODULES
+--------------------------------------------------------------------------------
+1. Engine Core
+   - PriceLevel: doubly-linked order queue
+   - OrderBook: bid/ask side maps, best bid/offer, depth snapshots
+   - MatchingEngine: price-time priority fills, partial fills, cancellations
+   - EventLog: nanosecond-level event journal for replay/analysis
+
+2. Market Model
+   - Reference-price stochastic process (Brownian + jump model)
+   - Trade-sign autocorrelation / order-flow toxicity model
+   - Propagator-style market impact (Almgren-Chriss / Gatheral)
+   - Volatility regime switching
+
+3. Agents
+   - NoiseTrader: random arrival rates, random sizes
+   - InformedTrader: directional signal with temporary/permanent impact
+   - BasicMarketMaker: symmetric quote, inventory limit
+   - SkewedMarketMaker: inventory-sensitive quoting
+   - RLMarketMaker: PPO/SAC agent trained in the environment
+
+4. Data & Calibration
+   - Polygon.io / Databento ingest pipeline
+   - Calibrate arrival-rate distributions and impact parameters
+   - Replay real tick data through engine for validation
+
+5. Performance
+   - Pure Python version for clarity and experimentation
+   - Cython / C++ extension for hot path (matching + order maintenance)
+   - Benchmark suite: orders/second, latency percentiles, memory usage
+
+6. Visualization
+   - Real-time order-book depth ladder
+   - Price + spread time series
+   - Agent P&L and inventory plots
+   - Heatmap of resting liquidity over time
+
+TECH STACK
+--------------------------------------------------------------------------------
+- Python 3.11+
+- NumPy / pandas / polars for data
+- heapq + custom linked lists for book
+- Cython or pybind11 + C++17 for performance layer
+- Gymnasium / Stable-Baselines3 for RL
+- Matplotlib / Plotly / WebGL for viz
+- Polygon.io / Databento for market data
+- pytest for unit tests
+- GitHub Actions for CI
+
+SUCCESS METRICS (must be measured and reported)
+--------------------------------------------------------------------------------
+- Python engine: >100k events/second throughput
+- C++ engine: >10M events/second throughput
+- RL market maker achieves positive P&L with bounded inventory vs. baseline
+- Calibrated simulator reproduces observed spread distribution within 20%
+- 100% unit-test coverage of matching logic
+- At least one published technical blog post
+
+BUILD PHASES
+--------------------------------------------------------------------------------
+Phase 0 (v0.1 — weeks 1-3): Core matching engine
+  - Order, PriceLevel, OrderBook, MatchingEngine
+  - Market/IOC/FOK/GTC orders, partial fills, cancels, modifications
+  - Event log + replay
+
+Phase 1 (v0.2 — weeks 4-5): Agents + market model
+  - Noise traders and informed traders
+  - Basic market maker with P&L accounting
+  - Market-impact model
+
+Phase 2 (v0.3 — weeks 6-8): RL market maker
+  - Gymnasium environment
+  - PPO training pipeline
+  - Evaluation against baseline strategies
+
+Phase 3 (v0.4 — weeks 9-12): C++ performance layer
+  - Port matching engine to C++
+  - pybind11 bindings
+  - Benchmark report
+
+Phase 4 (v0.5 — months 4-6): Visualization + data calibration
+  - Real-time book visualizer
+  - Polygon/Databento data ingest
+  - Calibrated scenario library
+
+INTERVIEW TALKING POINTS
+--------------------------------------------------------------------------------
+- "Matching engines use price-time priority. I implemented the full lifecycle."
+- "Market makers lose money to informed flow; I modeled adverse selection and
+  showed how skewing quotes on inventory reduces it."
+- "I ported the hot path to C++ and achieved a 100x throughput improvement."
+- "I trained a PPO agent to quote; it learned to widen spreads when uncertainty
+  was high and inventory risk increased."
+
+DIFFERENTIATOR / REVOLUTIONARY ANGLE
+--------------------------------------------------------------------------------
+Most LOB simulators stop at toy examples. Lumina LOB will combine:
+1. Real microstructure mechanics (impact, toxicity, inventory)
+2. RL training environment
+3. Production-grade C++ performance benchmark
+4. Calibration to real market data
+This is the only open-source Python/C++ simulator that packages all four.
+
+REPO NAME CANDIDATES
+--------------------------------------------------------------------------------
+- lumina-lob
+- microstructure-lab
+- quant-lob-sim
+
+FUTURE EXTENSIONS
+--------------------------------------------------------------------------------
+- Options order book with implied-vol quoting
+- Cross-venue arbitrage simulation
+- Latency-sensitive event simulation
+- FPGA/ASIC-style matching discussion

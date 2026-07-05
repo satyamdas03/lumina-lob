@@ -27,7 +27,7 @@ class PriceLevel:
             order.next = None
             self.tail.next = order
             self.tail = order
-        self.total_qty += order.qty
+        self.total_qty += order.remaining_qty
         self.order_count += 1
 
     def remove(self, order: Order) -> bool:
@@ -42,7 +42,7 @@ class PriceLevel:
             order.next.prev = order.prev
         else:
             self.tail = order.prev
-        self.total_qty -= order.qty
+        self.total_qty -= order.remaining_qty
         self.order_count -= 1
         order.prev = order.next = None
         return True

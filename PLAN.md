@@ -78,46 +78,46 @@ Each checkpoint is small enough for one focused session. After each, we stop and
 
 ### Phase 0: Core engine hardening
 
-- [ ] **CP0.1** Move existing modules into `lumina_lob/core/` and fix imports
-- [ ] **CP0.2** Add order modification (reduce quantity)
-- [ ] **CP0.3** Add IOC and FOK order types
-- [ ] **CP0.4** Add event log: every add/cancel/match recorded with timestamp
-- [ ] **CP0.5** Add full depth snapshot and `to_pandas()` helpers
-- [ ] **CP0.6** Reach 90% test coverage on core engine
+- [x] **CP0.1** Move existing modules into `lumina_lob/core/` and fix imports
+- [x] **CP0.2** Add order modification (reduce quantity)
+- [x] **CP0.3** Add IOC and FOK order types
+- [x] **CP0.4** Add event log: every add/cancel/match recorded with timestamp
+- [x] **CP0.5** Add full depth snapshot and `to_pandas()` helpers
+- [x] **CP0.6** Reach 90% test coverage on core engine
 
 ### Phase 1: Market model + agents
 
-- [ ] **CP1.1** Implement reference-price process (Brownian + jump)
-- [ ] **CP1.2** Implement noise trader with Poisson arrivals and random sizes
-- [ ] **CP1.3** Implement informed trader with temporary/permanent impact
-- [ ] **CP1.4** Implement basic market-maker (symmetric quotes, inventory limit)
-- [ ] **CP1.5** Implement skewed market-maker (inventory-sensitive quoting)
-- [ ] **CP1.6** Add propagator-style market impact model
-- [ ] **CP1.7** Build `Simulation` orchestrator that runs agents + engine together
-- [ ] **CP1.8** Notebook: agents + impact demo
+- [x] **CP1.1** Implement reference-price process (Brownian + jump)
+- [x] **CP1.2** Implement noise trader with Poisson arrivals and random sizes
+- [x] **CP1.3** Implement informed trader with temporary/permanent impact
+- [x] **CP1.4** Implement basic market-maker (symmetric quotes, inventory limit)
+- [x] **CP1.5** Implement skewed market-maker (inventory-sensitive quoting)
+- [x] **CP1.6** Add propagator-style market impact model
+- [x] **CP1.7** Build `Simulation` orchestrator that runs agents + engine together
+- [x] **CP1.8** Notebook: agents + impact demo
 
 ### Phase 2: Data + calibration
 
-- [ ] **CP2.1** Polygon.io EOD + tick data downloader
-- [ ] **CP2.2** Databento downloader with $125 free credits
-- [ ] **CP2.3** Calibrate arrival-rate distributions from real data
-- [ ] **CP2.4** Calibrate impact parameters from real data
-- [ ] **CP2.5** Replay real tick data through engine and validate spread distribution
-- [ ] **CP2.6** Notebook: calibration demo
+- [x] **CP2.1** Polygon.io EOD + tick data downloader
+- [x] **CP2.2** Databento downloader with $125 free credits
+- [x] **CP2.3** Calibrate arrival-rate distributions from real data
+- [x] **CP2.4** Calibrate impact parameters from real data
+- [x] **CP2.5** Replay real tick data through engine and validate spread distribution
+- [x] **CP2.6** Notebook: calibration demo
 
 ### Phase 3: RL market maker
 
-- [ ] **CP3.1** Define Gymnasium observation space (book state + inventory + P&L)
-- [ ] **CP3.2** Define action space (bid/ask quote offsets + sizes)
-- [ ] **CP3.3** Implement reward function (P&L - inventory penalty - spread cost)
-- [ ] **CP3.4** Train PPO baseline
-- [ ] **CP3.5** Train SAC comparison
-- [ ] **CP3.6** Evaluate RL vs heuristic market-makers
-- [ ] **CP3.7** Notebook: RL market maker training + evaluation
+- [x] **CP3.1** Define Gymnasium observation space (book state + inventory + P&L)
+- [x] **CP3.2** Define action space (bid/ask quote offsets + sizes)
+- [x] **CP3.3** Implement reward function (P&L - inventory penalty - spread cost)
+- [x] **CP3.4** Train PPO baseline
+- [x] **CP3.5** Train SAC comparison
+- [x] **CP3.6** Evaluate RL vs heuristic market-makers
+- [x] **CP3.7** Notebook: RL market maker training + evaluation
 
 ### Phase 4: C++ performance layer
 
-- [ ] **CP4.1** Port OrderBook + MatchingEngine to C++17
+- [x] **CP4.1** Port OrderBook + MatchingEngine to C++17
 - [ ] **CP4.2** Add pybind11 bindings
 - [ ] **CP4.3** Add build script (`setup.py` / `CMakeLists.txt`)
 - [ ] **CP4.4`Add throughput benchmark (Python vs C++)

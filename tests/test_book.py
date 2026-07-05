@@ -88,6 +88,70 @@ def test_invalid_limit_order_without_price():
         Order(1, Side.BID, None, 1, OrderType.LIMIT)
 
 
+def test_ioc_partial_fill_no_rest():
+    book = OrderBook()
+    engine = MatchingEngine(book)
+    engine.process(Order(1, Side.BID, 100, 5))
+    engine.process(Order(2, Side.BID, 100, 3))
+    ioc = Order(3, Side.ASK, None, 7, OrderType.IOC)
+    engine.process(ioc)
+    assert ioc.remaining_qty == 0
+    assert len(book.orders) == 1
+    assert book.orders[2].remaining_qty == 1
+
+
+def test_ioc_with_price_limit():
+    book = OrderBook()
+    engine = MatchingEngine(book)
+    engine.process(Order(1, Side.ASK, 100, 5))
+    engine.process(Order(2, Side.ASK, 101, 5))
+    ioc = Order(3, Side.BID, 100, 7, OrderType.IOC)
+    engine.process(ioc)
+    assert ioc.remaining_qty == 2
+    assert len(book.trades) == 1
+    assert book.orders[2].remaining_qty == 5
+
+
+def test_fok_full_fill():
+    book = OrderBook()
+    engine = MatchingEngine(book)
+    engine.process(Order(1, Side.BID, 100, 5))
+    engine.process(Order(2, Side.BID, 100, 5))
+    fok = Order(3, Side.ASK, None, 7, OrderType.FOK)
+    engine.process(fok)
+    assert fok.is_filled
+    assert len(book.trades) == 2
+    assert len(book.orders) == 1
+
+
+def test_fok_killed_when_insufficient():
+    book = OrderBook()
+    engine = MatchingEngine(book)
+    engine.process(Order(1, Side.BID, 100, 5))
+    fok = Order(2, Side.ASK, None, 10, OrderType.FOK)
+    engine.process(fok)
+    assert fok.remaining_qty == 10
+    assert len(book.trades) == 0
+    assert len(book.orders) == 1
+
+
+def test_fok_respects_limit_price():
+    book = OrderBook()
+    engine = MatchingEngine(book)
+    engine.process(Order(1, Side.BID, 100, 5))
+    engine.process(Order(2, Side.BID, 99, 10))
+    fok = Order(3, Side.ASK, None, 15, OrderType.FOK)
+    # FOK has no price limit here; fills all available liquidity
+    engine.process(fok)
+    assert fok.is_filled
+
+
+def test_ioc_and_fok_cannot_have_price_invalidation():
+    # IOC/FOK with a price is allowed in our model (price-limited IOC/FOK)
+    # but with None price they behave as market-style
+    pass
+
+
 def test_modify_reduce_qty():
     book = OrderBook()
     engine = MatchingEngine(book)

@@ -14,6 +14,8 @@ class Side(Enum):
 class OrderType(Enum):
     LIMIT = auto()
     MARKET = auto()
+    IOC = auto()   # Immediate or Cancel: fill what you can, rest cancelled
+    FOK = auto()   # Fill or Kill: all or nothing
 
 
 @dataclass

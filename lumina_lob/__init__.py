@@ -1,9 +1,6 @@
 """Lumina LOB: limit order book simulator."""
 
-from .book import OrderBook
-from .matching import MatchingEngine
-from .order import Order, Side, OrderType
-from .price_level import PriceLevel
+from lumina_lob.core import Order, OrderBook, OrderType, MatchingEngine, PriceLevel, Side
 
 __all__ = ["OrderBook", "MatchingEngine", "Order", "Side", "OrderType", "PriceLevel"]
 __version__ = "0.1.0"

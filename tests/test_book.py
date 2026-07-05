@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from lumina_lob import MatchingEngine, Order, OrderBook, OrderType, Side
+from lumina_lob.core import MatchingEngine, Order, OrderBook, OrderType, Side
 
 
 def test_add_limit_orders():

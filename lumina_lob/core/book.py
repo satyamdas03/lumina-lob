@@ -4,8 +4,8 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Dict, Optional, Tuple
 
-from .order import Order, Side
-from .price_level import PriceLevel
+from lumina_lob.core.order import Order, Side
+from lumina_lob.core.price_level import PriceLevel
 
 
 class OrderBook:

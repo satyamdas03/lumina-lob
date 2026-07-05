@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from typing import Optional
 
-from .book import OrderBook
-from .order import Order, OrderType, Side
+from lumina_lob.core.book import OrderBook
+from lumina_lob.core.order import Order, OrderType, Side
 
 
 class MatchingEngine:

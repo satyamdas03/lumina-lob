@@ -10,7 +10,7 @@ from lumina_lob.agents.informed_trader import InformedTrader
 from lumina_lob.agents.noise_trader import NoiseTrader
 from lumina_lob.core.book import OrderBook
 from lumina_lob.core.matching import MatchingEngine
-from lumina_lob.core.order import Side
+from lumina_lob.core.order import Order, Side
 from lumina_lob.market_model.reference_price import ReferencePriceProcess
 from lumina_lob.simulation import Simulation
 
@@ -41,12 +41,18 @@ class MarketMakerEnv(gym.Env):
         max_steps: int = 200,
         warmup_steps: int = 10,
         tick_size: float = 0.01,
+        max_quote_offset_ticks: int = 5,
+        min_quote_size: int = 10,
+        max_quote_size: int = 100,
         seed: Optional[int] = None,
     ) -> None:
         super().__init__()
         self.max_steps = max(1, int(max_steps))
         self.warmup_steps = max(0, int(warmup_steps))
         self.tick_size = float(tick_size)
+        self.max_quote_offset_ticks = max(0, int(max_quote_offset_ticks))
+        self.min_quote_size = max(1, int(min_quote_size))
+        self.max_quote_size = max(self.min_quote_size, int(max_quote_size))
         self._seed = seed
 
         self.observation_features: List[str] = [
@@ -68,8 +74,13 @@ class MarketMakerEnv(gym.Env):
             shape=(n_features,),
             dtype=np.float32,
         )
-        # Placeholder action space; CP3.2 will replace this with quote controls.
-        self.action_space = gym.spaces.Discrete(1)
+        # Continuous action: [bid_offset, ask_offset, bid_size, ask_size] in [-1, 1].
+        self.action_space = gym.spaces.Box(
+            low=-1.0,
+            high=1.0,
+            shape=(4,),
+            dtype=np.float32,
+        )
 
         self.simulation: Optional[Simulation] = None
         self._inventory = 0.0
@@ -77,6 +88,8 @@ class MarketMakerEnv(gym.Env):
         self._avg_fill_price = 0.0
         self._current_step = 0
         self._reference_price = 100.0
+        self._pending_action: Optional[np.ndarray] = None
+        self._proxy = self._AgentProxy(self)
 
     def reset(
         self,
@@ -110,7 +123,7 @@ class MarketMakerEnv(gym.Env):
             book=book,
             engine=engine,
             reference_price=reference_price,
-            agents=[noise, informed],
+            agents=[noise, informed, self._proxy],
             seed=effective_seed,
         )
 
@@ -118,6 +131,7 @@ class MarketMakerEnv(gym.Env):
         self._cash = 0.0
         self._avg_fill_price = 0.0
         self._current_step = 0
+        self._pending_action = None
 
         for _ in range(self.warmup_steps):
             self.simulation.step()
@@ -132,8 +146,12 @@ class MarketMakerEnv(gym.Env):
         if self.simulation is None:
             raise RuntimeError("Environment must be reset before calling step()")
 
-        # Action is currently a placeholder; CP3.2 will translate it into quotes.
-        _ = action
+        action_arr = np.asarray(action, dtype=np.float32)
+        if action_arr.shape != self.action_space.shape:
+            raise ValueError(
+                f"action shape {action_arr.shape} does not match {self.action_space.shape}"
+            )
+        self._pending_action = action_arr
 
         metrics = self.simulation.step()
         self._current_step += 1
@@ -185,19 +203,101 @@ class MarketMakerEnv(gym.Env):
         )
         return obs
 
-    def _update_inventory(self, side, qty: int, price: float) -> None:
+    def _update_inventory(
+        self, side, qty: int, price: Optional[float] = None
+    ) -> None:
         """Record a fill against the agent's inventory."""
         qty = float(qty)
+        fill_price = self._fill_price(price)
         if side == Side.BID:  # BID: agent bought
-            cost = qty * price
+            cost = qty * fill_price
             total_value = self._inventory * self._avg_fill_price + cost
             self._inventory += qty
             self._cash -= cost
             if self._inventory > 0:
                 self._avg_fill_price = total_value / self._inventory
         else:  # ASK: agent sold
-            proceeds = qty * price
+            proceeds = qty * fill_price
             self._inventory -= qty
             self._cash += proceeds
             if self._inventory == 0:
                 self._avg_fill_price = 0.0
+
+    def _fill_price(self, price: Optional[float]) -> float:
+        """Resolve a fill price, falling back to mid or reference price."""
+        if price is not None:
+            return float(price)
+        if self.simulation is not None:
+            mid = self.simulation.book.mid_price
+            if mid is not None:
+                return float(mid)
+        return float(self._reference_price)
+
+    def _action_to_quotes(
+        self, action: np.ndarray, reference_price: float
+    ) -> List[Order]:
+        """Translate a continuous action into bid/ask limit orders."""
+        if self.simulation is None:
+            return []
+
+        book = self.simulation.book
+        mid = book.mid_price if book.mid_price is not None else reference_price
+
+        bid_offset = int(round(((float(action[0]) + 1.0) / 2.0) * self.max_quote_offset_ticks))
+        ask_offset = int(round(((float(action[1]) + 1.0) / 2.0) * self.max_quote_offset_ticks))
+
+        bid_size = int(round(((float(action[2]) + 1.0) / 2.0) * (self.max_quote_size - self.min_quote_size) + self.min_quote_size))
+        ask_size = int(round(((float(action[3]) + 1.0) / 2.0) * (self.max_quote_size - self.min_quote_size) + self.min_quote_size))
+
+        bid_tick = max(1, round((mid - bid_offset * self.tick_size) / self.tick_size))
+        ask_tick = max(bid_tick + 1, round((mid + ask_offset * self.tick_size) / self.tick_size))
+        bid_price = bid_tick * self.tick_size
+        ask_price = ask_tick * self.tick_size
+
+        orders: List[Order] = []
+        if bid_size > 0:
+            order = Order(
+                order_id=0,
+                side=Side.BID,
+                price=bid_price,
+                qty=bid_size,
+            )
+            order._agent_quote = True  # type: ignore[attr-defined]
+            orders.append(order)
+        if ask_size > 0:
+            order = Order(
+                order_id=0,
+                side=Side.ASK,
+                price=ask_price,
+                qty=ask_size,
+            )
+            order._agent_quote = True  # type: ignore[attr-defined]
+            orders.append(order)
+        return orders
+
+    def _cancel_agent_quotes(self) -> None:
+        """Cancel any resting orders placed by the RL agent."""
+        if self.simulation is None:
+            return
+        book = self.simulation.book
+        for order_id in list(book.orders.keys()):
+            if getattr(book.orders[order_id], "_agent_quote", False):
+                book.cancel(order_id)
+
+    class _AgentProxy:
+        """Thin agent wrapper that turns the env action into limit orders."""
+
+        def __init__(self, env: "MarketMakerEnv") -> None:
+            self.env = env
+
+        def act(self, reference_price: float, book: OrderBook) -> List[Order]:
+            """Cancel old quotes and submit new ones from the pending action."""
+            self.env._cancel_agent_quotes()
+            action = self.env._pending_action
+            if action is None:
+                return []
+            return self.env._action_to_quotes(action, reference_price)
+
+        def on_fill(self, side: Side, qty: int) -> None:
+            """Forward fill notifications to the environment inventory tracker."""
+            self.env._update_inventory(side, qty)

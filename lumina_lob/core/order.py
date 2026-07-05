@@ -53,3 +53,13 @@ class Order:
         if amount > self.remaining_qty:
             raise ValueError("fill amount exceeds remaining qty")
         self.filled_qty += amount
+
+    def reduce_qty(self, new_qty: int) -> int:
+        """Reduce total desired qty. Return amount removed."""
+        if new_qty < self.filled_qty:
+            raise ValueError("new qty cannot be below filled qty")
+        if new_qty > self.qty:
+            raise ValueError("cannot increase qty via reduce")
+        removed = self.qty - new_qty
+        self.qty = new_qty
+        return removed

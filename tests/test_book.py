@@ -86,3 +86,46 @@ def test_invalid_market_order_with_price():
 def test_invalid_limit_order_without_price():
     with pytest.raises(ValueError):
         Order(1, Side.BID, None, 1, OrderType.LIMIT)
+
+
+def test_modify_reduce_qty():
+    book = OrderBook()
+    engine = MatchingEngine(book)
+    engine.process(Order(1, Side.BID, 100, 10))
+    assert book.modify(1, 6) is True
+    assert book.orders[1].qty == 6
+    assert book.orders[1].remaining_qty == 6
+    assert book.depth(Side.BID)[100] == 6
+
+
+def test_modify_to_fully_filled_removes():
+    book = OrderBook()
+    engine = MatchingEngine(book)
+    engine.process(Order(1, Side.BID, 100, 10))
+    engine.process(Order(2, Side.ASK, 100, 4))
+    assert book.orders[1].filled_qty == 4
+    assert book.modify(1, 4) is True
+    assert 1 not in book.orders
+    assert book.best_bid is None
+
+
+def test_modify_missing_order():
+    book = OrderBook()
+    assert book.modify(99, 5) is False
+
+
+def test_modify_below_filled_raises():
+    book = OrderBook()
+    engine = MatchingEngine(book)
+    engine.process(Order(1, Side.BID, 100, 10))
+    engine.process(Order(2, Side.ASK, 100, 4))
+    with pytest.raises(ValueError):
+        book.modify(1, 3)
+
+
+def test_modify_increase_raises():
+    book = OrderBook()
+    engine = MatchingEngine(book)
+    engine.process(Order(1, Side.BID, 100, 5))
+    with pytest.raises(ValueError):
+        book.modify(1, 10)

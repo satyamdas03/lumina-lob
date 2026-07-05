@@ -69,6 +69,25 @@ class OrderBook:
             del levels[order.price]
         return True
 
+    def modify(self, order_id: int, new_qty: int) -> bool:
+        """Reduce resting order to new total qty. Remove if fully filled."""
+        order = self.orders.get(order_id)
+        if order is None:
+            return False
+        if new_qty <= 0:
+            raise ValueError("new qty must be positive")
+        levels = self._side_levels(order.side)
+        level = levels.get(order.price)
+        if level is None:
+            return False
+        level.reduce(order, new_qty)
+        if order.is_filled:
+            level.remove(order)
+            self.orders.pop(order_id, None)
+        if level.is_empty():
+            del levels[order.price]
+        return True
+
     def depth(self, side: Side, n: int = 5) -> Dict[int, int]:
         """Return top N price levels and total qty."""
         levels = self._side_levels(side)

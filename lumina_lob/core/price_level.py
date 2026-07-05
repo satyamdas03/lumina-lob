@@ -60,6 +60,12 @@ class PriceLevel:
                 self.remove(front)
         return amount - remaining
 
+    def reduce(self, order: Order, new_qty: int) -> int:
+        """Reduce order qty at this level. Return removed amount."""
+        removed = order.reduce_qty(new_qty)
+        self.total_qty -= removed
+        return removed
+
     def is_empty(self) -> bool:
         return self.head is None
 

@@ -120,7 +120,7 @@ Each checkpoint is small enough for one focused session. After each, we stop and
 - [x] **CP4.1** Port OrderBook + MatchingEngine to C++17
 - [x] **CP4.2** Add pybind11 bindings
 - [x] **CP4.3** Add build script (`setup.py` / `CMakeLists.txt`)
-- [ ] **CP4.4** Add throughput benchmark (Python vs C++)
+- [x] **CP4.4** Add throughput benchmark (Python vs C++)
 - [ ] **CP4.5** Notebook: benchmark report
 
 ### Phase 5: Visualization

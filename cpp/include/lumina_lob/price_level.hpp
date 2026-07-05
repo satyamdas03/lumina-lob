@@ -35,11 +35,11 @@ public:
     int64_t total_qty() const noexcept { return total_qty_; }
     int64_t order_count() const noexcept { return order_count_; }
 
-    const std::list<std::unique_ptr<Order>>& orders() const noexcept { return orders_; }
-    std::list<std::unique_ptr<Order>>& orders() noexcept { return orders_; }
+    const std::list<std::shared_ptr<Order>>& orders() const noexcept { return orders_; }
+    std::list<std::shared_ptr<Order>>& orders() noexcept { return orders_; }
 
 private:
-    std::list<std::unique_ptr<Order>> orders_;
+    std::list<std::shared_ptr<Order>> orders_;
     int64_t total_qty_ = 0;
     int64_t order_count_ = 0;
 };

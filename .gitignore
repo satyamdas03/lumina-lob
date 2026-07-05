@@ -60,6 +60,8 @@ logs/
 *.lib
 *.pdb
 *.ilk
+*.exp
+*.pyd
 cpp/build/
 
 # Misc

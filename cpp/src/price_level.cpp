@@ -13,7 +13,7 @@ Order& PriceLevel::append(std::unique_ptr<Order> order) {
 
 bool PriceLevel::remove(const Order& order) {
     auto it = std::find_if(orders_.begin(), orders_.end(),
-                           [&order](const std::unique_ptr<Order>& ptr) { return ptr.get() == &order; });
+                           [&order](const std::shared_ptr<Order>& ptr) { return ptr.get() == &order; });
     if (it == orders_.end()) {
         return false;
     }

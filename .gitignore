@@ -54,6 +54,14 @@ logs/
 # Notebooks
 .ipynb_checkpoints/
 
+# C++ build artifacts
+*.obj
+*.exe
+*.lib
+*.pdb
+*.ilk
+cpp/build/
+
 # Misc
 .env
 *.secret

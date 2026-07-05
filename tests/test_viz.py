@@ -11,6 +11,7 @@ from lumina_lob.viz import (
     plot_depth_ladder,
     plot_simulation_history,
     run_animation,
+    save_animation,
 )
 
 
@@ -172,4 +173,54 @@ def test_update_price_axis_with_empty_history():
     x_data, y_data = animator._price_line.get_data()
     assert len(x_data) == 0
     assert len(y_data) == 0
+
+
+def test_update_price_axis_with_all_none_mids():
+    """Internal price-axis update is a no-op when every record lacks a mid price."""
+    sim = _make_simple_simulation()
+    sim.history = [
+        {"step": 1, "mid_price": None, "trade_count": 0},
+        {"step": 2, "mid_price": None, "trade_count": 0},
+    ]
+    animator = SimulationAnimator(sim, top_n=3, history_window=5)
+    animator._update_price_axis()
+    x_data, y_data = animator._price_line.get_data()
+    assert len(x_data) == 0
+    assert len(y_data) == 0
+
+
+def test_save_animation_gif_creates_file(tmp_path):
+    """save_animation can write a short GIF using the Pillow writer."""
+    import matplotlib.animation as _animation
+
+    if not _animation.writers.is_available("pillow"):
+        pytest.skip("Pillow writer not available")
+
+    sim = _make_simple_simulation()
+    anim = run_animation(sim, n_steps=3, top_n=3)
+    out = tmp_path / "replay.gif"
+    save_animation(anim, out, fps=2)
+    assert out.exists()
+    assert out.stat().st_size > 0
+
+
+def test_save_animation_unsupported_extension(tmp_path):
+    """save_animation rejects unknown file extensions."""
+    sim = _make_simple_simulation()
+    anim = run_animation(sim, n_steps=2, top_n=3)
+    out = tmp_path / "replay.png"
+    with pytest.raises(ValueError, match="Unsupported animation format"):
+        save_animation(anim, out)
+
+
+def test_save_animation_missing_writer_raises(monkeypatch, tmp_path):
+    """save_animation reports when the required backend writer is missing."""
+    import matplotlib.animation as _animation
+
+    sim = _make_simple_simulation()
+    anim = run_animation(sim, n_steps=2, top_n=3)
+    out = tmp_path / "replay.gif"
+    monkeypatch.setattr(_animation.writers, "is_available", lambda _name: False)
+    with pytest.raises(ValueError, match="writer is not available"):
+        save_animation(anim, out)
 

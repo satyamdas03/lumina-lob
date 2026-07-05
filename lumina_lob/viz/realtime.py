@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 
 try:
+    import matplotlib.animation as _animation
     import matplotlib.pyplot as plt
     from matplotlib.animation import FuncAnimation
     from matplotlib.figure import Figure
@@ -96,16 +98,18 @@ class SimulationAnimator:
         history = self.simulation.history[-self.history_window :]
         if not history:
             return
-        steps = [r["step"] for r in history]
-        mids = [r["mid_price"] for r in history]
+        valid = [(r["step"], r["mid_price"]) for r in history if r["mid_price"] is not None]
+        if not valid:
+            return
+        steps, mids = zip(*valid)
         self._price_line.set_data(steps, mids)
         self.ax_price.set_xlim(min(steps), max(max(steps), min(steps) + 1))
         y_min, y_max = min(mids), max(mids)
         pad = max((y_max - y_min) * 0.1, 0.01)
         self.ax_price.set_ylim(y_min - pad, y_max + pad)
 
-        trade_steps = [r["step"] for r in history if r["trade_count"] > 0]
-        trade_mids = [r["mid_price"] for r in history if r["trade_count"] > 0]
+        trade_steps = [r["step"] for r in history if r["trade_count"] > 0 and r["mid_price"] is not None]
+        trade_mids = [r["mid_price"] for r in history if r["trade_count"] > 0 and r["mid_price"] is not None]
         if trade_mids:
             self._trade_scatter.set_offsets(np.column_stack([trade_steps, trade_mids]))
         else:
@@ -165,3 +169,44 @@ def run_animation(
         interval_ms=interval_ms,
     )
     return animator.run(n_steps)
+
+
+def save_animation(
+    animation: FuncAnimation,
+    path: str | Path,
+    fps: int = 5,
+) -> None:
+    """Save a simulation animation to *path* as GIF or MP4.
+
+    Parameters
+    ----------
+    animation:
+        A ``matplotlib.animation.FuncAnimation`` instance (e.g. from
+        ``run_animation``).
+    path:
+        Destination file path. Supported extensions: ``.gif`` (requires
+        Pillow) and ``.mp4`` (requires ffmpeg).
+    fps:
+        Frames per second for the output file.
+
+    Raises
+    ------
+    ValueError
+        If the file extension is unsupported or the required writer is not
+        available.
+    """
+    out = Path(path)
+    writer_map = {".gif": "pillow", ".mp4": "ffmpeg"}
+    ext = out.suffix.lower()
+    if ext not in writer_map:
+        raise ValueError(f"Unsupported animation format: {ext!r}. Use .gif or .mp4.")
+
+    writer = writer_map[ext]
+    if not _animation.writers.is_available(writer):
+        raise ValueError(
+            f"{writer!r} writer is not available. "
+            f"Install it to save {ext} animations (e.g. `pip install pillow` for .gif)."
+        )
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    animation.save(str(out), writer=writer, fps=fps)

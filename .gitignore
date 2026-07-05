@@ -56,3 +56,4 @@ logs/
 # Misc
 .env
 *.secret
+.coverage

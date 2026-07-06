@@ -52,12 +52,11 @@ The `Simulation` class wires agents to the matching engine and records a history
 from lumina_lob import Simulation, NoiseTrader
 
 sim = Simulation(
-    agents=[NoiseTrader(intensity=5.0, max_qty=10)],
-    steps=100,
+    agents=[NoiseTrader(arrival_rate=5.0, size_max=10, seed=42)],
     seed=42,
 )
-sim.run()
-print(sim.history.head())
+sim.run(n_steps=100)
+print(sim.to_dataframe().head())
 ```
 
 See the [architecture tutorial](architecture.md) for how agents, impact models, and the engine fit together.

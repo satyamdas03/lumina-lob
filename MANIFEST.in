@@ -6,4 +6,5 @@ recursive-exclude cpp *.obj *.o *.lib *.exp *.pyd *.so *.dll
 recursive-include notebooks *.ipynb
 recursive-include docs *.md *.yml
 include mkdocs.yml
+recursive-include blog *.md *.png
 recursive-include tests *.py

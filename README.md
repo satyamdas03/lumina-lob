@@ -14,6 +14,11 @@ Quant firms like Jane Street, Citadel Securities, Optiver, and IMC make markets 
 
 Full docs site: **https://satyamdas03.github.io/lumina-lob**
 
+## Blog post
+
+Draft: [`blog/build-a-lob-simulator.md`](blog/build-a-lob-simulator.md) — *"Build a Limit Order Book Simulator from Scratch"*.  
+Planned publication on Medium / Dev.to as part of CP6.5.
+
 ## Install
 
 ```bash
@@ -74,7 +79,8 @@ print(book.trades)
 | PyPI packaging | ✅ Done |
 | GitHub Actions CI | ✅ Done |
 | MkDocs documentation site | ✅ Done |
-| Technical blog post + social launch | 🔲 Planned |
+| Technical blog post | ✅ Done (draft) |
+| Social launch (LinkedIn/X) | 🔲 Planned |
 | Technical blog post + social launch | 🔲 Planned |
 
 ## Roadmap

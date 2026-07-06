@@ -1,7 +1,5 @@
 # Lumina LOB
 
-[![CI](https://github.com/satyamdas03/lumina-lob/actions/workflows/ci.yml/badge.svg)](https://github.com/satyamdas03/lumina-lob/actions/workflows/ci.yml)
-
 A production-grade, educational **Limit Order Book (LOB) simulator** with algorithmic market-making, reinforcement learning support, and real-time visualization.
 
 > **Mission:** Build the most complete open-source LOB simulator that demonstrates tick-level market microstructure — matching engines, market impact, adverse selection, inventory risk, RL-based market making, and replay against real tick data.
@@ -9,10 +7,6 @@ A production-grade, educational **Limit Order Book (LOB) simulator** with algori
 ## Why this matters
 
 Quant firms like Jane Street, Citadel Securities, Optiver, and IMC make markets at the tick level. Most open-source simulators are either too academic or too toy-like. **Lumina LOB** fills the gap with realistic agents, performance benchmarks, calibration to real data, and RL training.
-
-## Documentation
-
-Full docs site: **https://satyamdas03.github.io/lumina-lob**
 
 ## Install
 
@@ -33,7 +27,7 @@ git clone https://github.com/satyamdas03/lumina-lob.git
 cd lumina-lob
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -e ".[dev,viz]"
+pip install -e ".[dev,viz,docs]"
 pytest
 ```
 
@@ -75,7 +69,6 @@ print(book.trades)
 | GitHub Actions CI | ✅ Done |
 | MkDocs documentation site | ✅ Done |
 | Technical blog post + social launch | 🔲 Planned |
-| Technical blog post + social launch | 🔲 Planned |
 
 ## Roadmap
 
@@ -91,10 +84,9 @@ The project is built in six phases:
 | Phase 5 | Visualization | ✅ Done |
 | Phase 6 | Packaging + publication | 🚧 In progress |
 
-## Project spec
+## Learn more
 
-See [`PROJECT_SPEC.txt`](PROJECT_SPEC.txt) for the full vision, market gap, build phases, and interview talking points.
-
-## License
-
-MIT © Satyam Das
+- [Quickstart tutorial](tutorials/quickstart.md)
+- [Architecture overview](tutorials/architecture.md)
+- [Building a custom agent](tutorials/custom-agent.md)
+- [API reference](api/core.md)

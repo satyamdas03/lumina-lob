@@ -1,0 +1,74 @@
+site_name: Lumina LOB
+site_description: Production-grade limit order book simulator with market-making and RL support
+site_author: Satyam Das
+site_url: https://satyamdas03.github.io/lumina-lob
+repo_name: satyamdas03/lumina-lob
+repo_url: https://github.com/satyamdas03/lumina-lob
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["."]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_category_heading: true
+
+nav:
+  - Home: index.md
+  - Tutorials:
+      - Quickstart: tutorials/quickstart.md
+      - Architecture: tutorials/architecture.md
+      - Building a Custom Agent: tutorials/custom-agent.md
+  - API Reference:
+      - Core: api/core.md
+      - Agents: api/agents.md
+      - Market Model: api/market_model.md
+      - Simulation: api/simulation.md
+      - Data: api/data.md
+      - RL: api/rl.md
+      - Visualization: api/viz.md
+  - GitHub Repository: https://github.com/satyamdas03/lumina-lob
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/satyamdas03

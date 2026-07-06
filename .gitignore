@@ -68,3 +68,6 @@ cpp/build/
 .env
 *.secret
 .coverage
+
+# MkDocs build output
+site/

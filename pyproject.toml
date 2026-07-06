@@ -33,8 +33,13 @@ viz = [
     "matplotlib>=3.7",
     "plotly>=5.18",
 ]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.24",
+]
 all = [
-    "lumina-lob[dev,viz]",
+    "lumina-lob[dev,viz,docs]",
 ]
 
 [project.urls]

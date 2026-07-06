@@ -1,6 +1,8 @@
 """setuptools configuration for lumina-lob with optional C++ extension."""
 
+import os
 import warnings
+from pathlib import Path
 
 try:
     from pybind11.setup_helpers import Pybind11Extension, build_ext as _build_ext
@@ -12,16 +14,24 @@ except ImportError as exc:  # pragma: no cover
 
 from setuptools import setup
 
+_HERE = Path(__file__).resolve().parent
+
+
+def _rel(*parts: str) -> str:
+    """Return a /-separated path relative to this setup.py file."""
+    return os.path.relpath(_HERE.joinpath(*parts), _HERE).replace(os.sep, "/")
+
+
 sources = [
-    "cpp/bindings.cpp",
-    "cpp/src/order.cpp",
-    "cpp/src/price_level.cpp",
-    "cpp/src/event_log.cpp",
-    "cpp/src/book.cpp",
-    "cpp/src/matching.cpp",
+    _rel("cpp", "bindings.cpp"),
+    _rel("cpp", "src", "order.cpp"),
+    _rel("cpp", "src", "price_level.cpp"),
+    _rel("cpp", "src", "event_log.cpp"),
+    _rel("cpp", "src", "book.cpp"),
+    _rel("cpp", "src", "matching.cpp"),
 ]
 
-include_dirs = ["cpp/include"]
+include_dirs = [_rel("cpp", "include")]
 
 
 class OptionalBuildExt(_build_ext):

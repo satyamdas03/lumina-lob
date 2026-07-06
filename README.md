@@ -1,36 +1,39 @@
 # Lumina LOB
 
-A production-grade, educational **Limit Order Book (LOB) simulator** with algorithmic market-making and reinforcement learning support.
+A production-grade, educational **Limit Order Book (LOB) simulator** with algorithmic market-making, reinforcement learning support, and real-time visualization.
 
-> **Mission:** Build the most complete open-source LOB simulator that demonstrates tick-level market microstructure — matching engines, market impact, adverse selection, inventory risk, and RL-based market making.
+> **Mission:** Build the most complete open-source LOB simulator that demonstrates tick-level market microstructure — matching engines, market impact, adverse selection, inventory risk, RL-based market making, and replay against real tick data.
 
 ## Why this matters
 
-Quant firms like Jane Street, Citadel Securities, Optiver, and IMC make markets at the tick level. Most open-source simulators are either too academic or too toy-like. **Lumina LOB** fills the gap with realistic agents, performance benchmarks, and RL training.
+Quant firms like Jane Street, Citadel Securities, Optiver, and IMC make markets at the tick level. Most open-source simulators are either too academic or too toy-like. **Lumina LOB** fills the gap with realistic agents, performance benchmarks, calibration to real data, and RL training.
 
-## Current status
+## Install
 
-- ✅ Price-time priority matching engine (Python)
-- ✅ Doubly-linked order queues per price level
-- ✅ Market orders + limit orders + cancellations
-- ✅ Unit tests for matching, partial fills, price-time priority
-- 🚧 Agents + market impact model
-- 🚧 RL market-maker environment
-- 🚧 C++ performance benchmark
-- 🚧 Data calibration + visualization
+```bash
+pip install lumina-lob
+```
 
-## Quickstart
+Optional visualization support:
+
+```bash
+pip install lumina-lob[viz]
+```
+
+Development install from source:
 
 ```bash
 git clone https://github.com/satyamdas03/lumina-lob.git
 cd lumina-lob
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+pip install -e ".[dev,viz]"
 pytest
 ```
 
-## Example
+The C++ accelerated core builds automatically when a compiler and `pybind11` are available; otherwise the package falls back to the pure-Python engine.
+
+## Quickstart
 
 ```python
 from lumina_lob import Order, OrderBook, MatchingEngine, Side
@@ -46,15 +49,40 @@ print(book.snapshot())
 print(book.trades)
 ```
 
+## Features
+
+| Feature | Status |
+|---|---|
+| Price-time priority matching engine (Python) | ✅ Done |
+| Optional C++17 hot path via pybind11 | ✅ Done |
+| Limit, market, IOC, FOK, cancel, modify orders | ✅ Done |
+| Event log with nanosecond timestamps | ✅ Done |
+| Noise trader, informed trader, market makers | ✅ Done |
+| Propagator / Almgren-Chriss market impact | ✅ Done |
+| Simulation orchestrator + pandas history export | ✅ Done |
+| Polygon.io + Databento data downloaders | ✅ Done |
+| Calibration to real tick data | ✅ Done |
+| Gymnasium RL market-maker environment (PPO/SAC) | ✅ Done |
+| Matplotlib depth ladder + history + real-time animator | ✅ Done |
+| GIF/MP4 replay export | ✅ Done |
+| PyPI packaging | ✅ Done |
+| GitHub Actions CI | 🔲 Next |
+| MkDocs documentation site | 🔲 Planned |
+| Technical blog post + social launch | 🔲 Planned |
+
 ## Roadmap
+
+The project is built in six phases:
 
 | Phase | Goal | Status |
 |---|---|---|
-| v0.1 | Core matching engine | ✅ Done |
-| v0.2 | Agents + market impact model | 🚧 In progress |
-| v0.3 | RL market-maker environment | 🔲 Planned |
-| v0.4 | C++ performance benchmark | 🔲 Planned |
-| v0.5 | Data calibration + visualization | 🔲 Planned |
+| Phase 0 | Core engine hardening | ✅ Done |
+| Phase 1 | Market model + agents | ✅ Done |
+| Phase 2 | Data + calibration | ✅ Done |
+| Phase 3 | RL market maker | ✅ Done |
+| Phase 4 | C++ performance layer | ✅ Done |
+| Phase 5 | Visualization | ✅ Done |
+| Phase 6 | Packaging + publication | 🚧 In progress |
 
 ## Project spec
 

@@ -48,3 +48,24 @@ jobs:
           name: wheels-${{ matrix.os }}-${{ matrix.python-version }}
           path: dist/*.whl
           if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: pypi
+      url: https://pypi.org/p/lumina-lob
+    permissions:
+      id-token: write
+    steps:
+      - name: Download all wheels
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: wheels-*
+          merge-multiple: true
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

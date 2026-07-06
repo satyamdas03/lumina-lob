@@ -137,7 +137,7 @@ Each checkpoint is small enough for one focused session. After each, we stop and
 - [x] **CP6.3** Write full documentation site (MkDocs)
 - [x] **CP6.4** Write technical blog post "Build a Limit Order Book Simulator from Scratch"
 - [x] **CP6.5** LinkedIn/X launch
-- [ ] **CP6.6** Pin repo on GitHub profile
+- [x] **CP6.6** Pin repo on GitHub profile + publish to PyPI
 
 ## Execution mode
 

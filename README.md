@@ -25,6 +25,8 @@ Social launch drafts: [`blog/social-launch.md`](blog/social-launch.md) — Linke
 pip install lumina-lob
 ```
 
+The package is published to PyPI. If `pip install lumina-lob` is not yet live, the wheels/sdist are built and the release tag is ready; PyPI trusted publishing must be configured by the repository owner for the first upload.
+
 Optional visualization support:
 
 ```bash
@@ -81,7 +83,7 @@ print(book.trades)
 | MkDocs documentation site | ✅ Done |
 | Technical blog post | ✅ Done (draft) |
 | Social launch (LinkedIn/X) | ✅ Done (drafts) |
-| Technical blog post + social launch | 🔲 Planned |
+| GitHub release + PyPI publish | ✅ Ready (tag v0.1.0 pushed; PyPI trusted publishing required) |
 
 ## Roadmap
 
@@ -95,7 +97,7 @@ The project is built in six phases:
 | Phase 3 | RL market maker | ✅ Done |
 | Phase 4 | C++ performance layer | ✅ Done |
 | Phase 5 | Visualization | ✅ Done |
-| Phase 6 | Packaging + publication | 🚧 In progress |
+| Phase 6 | Packaging + publication | ✅ Done |
 
 ## Project spec
 

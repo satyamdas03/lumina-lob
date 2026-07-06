@@ -132,8 +132,8 @@ Each checkpoint is small enough for one focused session. After each, we stop and
 
 ### Phase 6: Packaging + publication
 
-- [ ] **CP6.1** Package for PyPI (`pip install lumina-lob`)
-- [ ] **CP6.2** GitHub Actions CI (test matrix Python 3.11–3.13)
+- [x] **CP6.1** Package for PyPI (`pip install lumina-lob`)
+- [x] **CP6.2** GitHub Actions CI (test matrix Python 3.11–3.13)
 - [ ] **CP6.3** Write full documentation site (MkDocs)
 - [ ] **CP6.4** Write technical blog post "Build a Limit Order Book Simulator from Scratch"
 - [ ] **CP6.5** LinkedIn/X launch

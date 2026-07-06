@@ -1,5 +1,7 @@
 # Lumina LOB
 
+[![CI](https://github.com/satyamdas03/lumina-lob/actions/workflows/ci.yml/badge.svg)](https://github.com/satyamdas03/lumina-lob/actions/workflows/ci.yml)
+
 A production-grade, educational **Limit Order Book (LOB) simulator** with algorithmic market-making, reinforcement learning support, and real-time visualization.
 
 > **Mission:** Build the most complete open-source LOB simulator that demonstrates tick-level market microstructure — matching engines, market impact, adverse selection, inventory risk, RL-based market making, and replay against real tick data.

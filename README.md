@@ -17,7 +17,7 @@ Full docs site: **https://satyamdas03.github.io/lumina-lob**
 ## Blog post
 
 Draft: [`blog/build-a-lob-simulator.md`](blog/build-a-lob-simulator.md) — *"Build a Limit Order Book Simulator from Scratch"*.  
-Planned publication on Medium / Dev.to as part of CP6.5.
+Social launch drafts: [`blog/social-launch.md`](blog/social-launch.md) — LinkedIn post + X/Twitter thread ready for human review/posting.
 
 ## Install
 
@@ -38,7 +38,7 @@ git clone https://github.com/satyamdas03/lumina-lob.git
 cd lumina-lob
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -e ".[dev,viz]"
+pip install -e ".[dev,viz,docs]"
 pytest
 ```
 
@@ -80,7 +80,7 @@ print(book.trades)
 | GitHub Actions CI | ✅ Done |
 | MkDocs documentation site | ✅ Done |
 | Technical blog post | ✅ Done (draft) |
-| Social launch (LinkedIn/X) | 🔲 Planned |
+| Social launch (LinkedIn/X) | ✅ Done (drafts) |
 | Technical blog post + social launch | 🔲 Planned |
 
 ## Roadmap

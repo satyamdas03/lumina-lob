@@ -27,6 +27,21 @@ pip install lumina-lob
 
 The package is published to PyPI. If `pip install lumina-lob` is not yet live, the wheels/sdist are built and the release tag is ready; PyPI trusted publishing must be configured by the repository owner for the first upload.
 
+### First-time PyPI trusted publishing setup (repository owner only)
+
+1. Log in to [pypi.org](https://pypi.org) as `satyamdas03`.
+2. Go to **Account settings → Publishing**.
+3. Add a new **pending publisher**:
+   - **PyPI project name:** `lumina-lob`
+   - **Owner:** `satyamdas03`
+   - **Repository name:** `lumina-lob`
+   - **Workflow name:** `.github/workflows/build.yml`
+   - **Environment name:** `pypi`
+4. Save. The next push of a `v*.*.*` tag will automatically publish.
+5. The `v0.1.1` tag is already pushed; after configuring the publisher, re-run the failed **Build wheels** workflow run or push a new `v*.*.*` tag.
+
+The GitHub Actions run for `v0.1.1` confirmed that all 9 OS/Python matrix builds pass and produce both wheels and an sdist; only the final publish step fails until this configuration is done.
+
 Optional visualization support:
 
 ```bash

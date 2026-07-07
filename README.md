@@ -25,22 +25,7 @@ Social launch drafts: [`blog/social-launch.md`](blog/social-launch.md) — Linke
 pip install lumina-lob
 ```
 
-The package is published to PyPI. If `pip install lumina-lob` is not yet live, the wheels/sdist are built and the release tag is ready; PyPI trusted publishing must be configured by the repository owner for the first upload.
-
-### First-time PyPI trusted publishing setup (repository owner only)
-
-1. Log in to [pypi.org](https://pypi.org) as `satyamdas03`.
-2. Go to **Account settings → Publishing**.
-3. Add a new **pending publisher**:
-   - **PyPI project name:** `lumina-lob`
-   - **Owner:** `satyamdas03`
-   - **Repository name:** `lumina-lob`
-   - **Workflow name:** `build.yml`
-   - **Environment name:** `pypi`
-4. Save. The next push of a `v*.*.*` tag will automatically publish.
-5. The `v0.1.1` tag is already pushed; after configuring the publisher, re-run the failed **Build wheels** workflow run or push a new `v*.*.*` tag.
-
-The GitHub Actions run for `v0.1.1` confirmed that all 9 OS/Python matrix builds pass and produce both wheels and an sdist; only the final publish step fails until this configuration is done.
+Published to PyPI: `lumina-lob` v0.1.4 is live with Windows/macOS wheels and a source distribution. Linux installs build from the sdist (the optional C++ extension compiles if a compiler is available; otherwise the pure-Python engine is used).
 
 Optional visualization support:
 
@@ -100,7 +85,7 @@ For an interactive walkthrough, open the first available notebook: [`notebooks/0
 | MkDocs documentation site | ✅ Done |
 | Technical blog post | ✅ Done (draft) |
 | Social launch (LinkedIn/X) | ✅ Done (drafts) |
-| GitHub release + PyPI publish | ✅ Ready (tag v0.1.0 pushed; PyPI trusted publishing required) |
+| GitHub release + PyPI publish | ✅ Done (v0.1.4 published) |
 
 ## Roadmap
 

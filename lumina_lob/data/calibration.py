@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -42,20 +42,20 @@ class CalibratedParams:
 
     arrival_rate: float
     size_dist_method: str
-    size_lognorm_mu: Optional[float] = None
-    size_lognorm_sigma: Optional[float] = None
-    size_hist: Optional[pd.Series] = None
-    mean_spread: Optional[float] = None
+    size_lognorm_mu: float | None = None
+    size_lognorm_sigma: float | None = None
+    size_hist: pd.Series | None = None
+    mean_spread: float | None = None
     tick_size: float = 0.01
     time_unit: str = "S"
-    permanent_impact: Optional[float] = None
-    temporary_impact: Optional[float] = None
-    impact_decay: Optional[float] = None
+    permanent_impact: float | None = None
+    temporary_impact: float | None = None
+    impact_decay: float | None = None
 
 
 def calibrate(
     trades: pd.DataFrame,
-    quotes: Optional[pd.DataFrame] = None,
+    quotes: pd.DataFrame | None = None,
     size_method: str = "lognormal",
     time_unit: str = "S",
     bid_col: str = "bid_px_00",
@@ -147,7 +147,7 @@ def _time_unit_seconds(unit: str) -> float:
     raise ValueError(f"unsupported time_unit: {unit}")
 
 
-def _fit_size_distribution(sizes: pd.Series, method: str) -> dict:
+def _fit_size_distribution(sizes: pd.Series, method: str) -> dict[str, Any]:
     """Return size distribution parameters for the requested method."""
     sizes = sizes[sizes > 0]
     if sizes.empty:
@@ -195,7 +195,7 @@ def _signed_volume(trades: pd.DataFrame, side_col: str) -> np.ndarray:
     """Convert trade sizes to signed volumes using the side column."""
     sizes = np.asarray(trades["size"], dtype=float)
     signs = _sign_from_side(trades[side_col])
-    return sizes * signs
+    return cast(np.ndarray, sizes * signs)
 
 
 def _sign_from_side(series: pd.Series) -> np.ndarray:
@@ -212,7 +212,7 @@ def _sign_from_side(series: pd.Series) -> np.ndarray:
     return np.where(buy_mask, 1, np.where(sell_mask, -1, 0))
 
 
-def _fit_propagator_impact(prices: pd.Series, signed_volumes: np.ndarray) -> dict:
+def _fit_propagator_impact(prices: pd.Series, signed_volumes: np.ndarray) -> dict[str, Any]:
     """Estimate propagator-style impact coefficients from price and signed volume.
 
     The model is:
@@ -247,18 +247,18 @@ def _fit_propagator_impact(prices: pd.Series, signed_volumes: np.ndarray) -> dic
         }
 
     decay_candidates = np.linspace(0.05, 0.95, 19)
-    best = {"rss": np.inf}
+    best: dict[str, Any] = {"rss": np.inf}
     for decay in decay_candidates:
         exposure = _build_exposure(q, decay)[1:]
-        X = np.column_stack([q_lag, exposure])
+        x = np.column_stack([q_lag, exposure])
         # Remove any rows with NaN/Inf before fitting.
-        mask = np.isfinite(X).all(axis=1) & np.isfinite(dprice)
-        Xf = X[mask]
+        mask = np.isfinite(x).all(axis=1) & np.isfinite(dprice)
+        xf = x[mask]
         yf = dprice[mask]
-        if Xf.shape[0] < 2 or np.linalg.matrix_rank(Xf) < 2:
+        if xf.shape[0] < 2 or np.linalg.matrix_rank(xf) < 2:
             continue
-        coeffs, *_ = np.linalg.lstsq(Xf, yf, rcond=None)
-        pred = Xf @ coeffs
+        coeffs, *_ = np.linalg.lstsq(xf, yf, rcond=None)
+        pred = xf @ coeffs
         rss = float(np.sum((yf - pred) ** 2))
         if rss < best["rss"]:
             best = {

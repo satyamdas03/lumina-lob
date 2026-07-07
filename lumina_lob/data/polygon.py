@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Any, cast
 
 import pandas as pd
 import requests
@@ -26,7 +26,7 @@ class PolygonClient:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         base_url: str = "https://api.polygon.io",
         cache_dir: str = ".cache/polygon",
     ) -> None:
@@ -72,25 +72,25 @@ class PolygonClient:
         return self._trades_to_dataframe(data.get("results", []))
 
     def _fetch_json(
-        self, url: str, params: dict, cache_key: str
-    ) -> dict:
+        self, url: str, params: dict[str, Any], cache_key: str
+    ) -> dict[str, Any]:
         """Return JSON from cache or fetch from Polygon and cache it."""
         cache_path = self.cache_dir / cache_key.replace("/", "_")
         if cache_path.exists():
             with cache_path.open("r", encoding="utf-8") as fh:
-                return json.load(fh)
+                return cast(dict[str, Any], json.load(fh))
 
         response = requests.get(url, params=params, timeout=30)
         if response.status_code != 200:
             raise RuntimeError(
                 f"Polygon API error {response.status_code}: {response.text}"
             )
-        data: dict = response.json()
+        data: dict[str, Any] = cast(dict[str, Any], response.json())
         cache_path.write_text(response.text, encoding="utf-8")
         return data
 
     @staticmethod
-    def _bars_to_dataframe(results: list) -> pd.DataFrame:
+    def _bars_to_dataframe(results: list[dict[str, Any]]) -> pd.DataFrame:
         if not results:
             return pd.DataFrame(
                 columns=[
@@ -122,7 +122,7 @@ class PolygonClient:
         return df.sort_values("timestamp").reset_index(drop=True)
 
     @staticmethod
-    def _trades_to_dataframe(results: list) -> pd.DataFrame:
+    def _trades_to_dataframe(results: list[dict[str, Any]]) -> pd.DataFrame:
         if not results:
             return pd.DataFrame(
                 columns=["timestamp", "price", "size", "exchange", "conditions"]

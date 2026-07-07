@@ -19,10 +19,10 @@ Target user: quant-interview candidates, ML researchers, students, and hiring ma
 | Metric | Target | How measured |
 |---|---|---|
 | Python engine throughput | >100k events/sec | `benchmarks/engine_benchmark.py` |
-| C++ engine throughput | >10M events/sec | `benchmarks/cpp_benchmark.py` |
+| C++ engine throughput | >10M events/sec | `notebooks/05_benchmark_report.ipynb` |
 | Unit test coverage | >90% | `pytest --cov` |
-| RL market maker P&L | positive net vs baseline | `notebooks/rl_market_maker.ipynb` |
-| Real spread reproduction | within 20% of real data | `notebooks/calibration.ipynb` |
+| RL market maker P&L | positive net vs baseline | `notebooks/03_rl_market_maker.ipynb` |
+| Real spread reproduction | within 20% of real data | `notebooks/04_calibration.ipynb` |
 | GitHub stars | >200 within 6 months | GitHub API |
 | Blog post traffic | >5k views | Substack/LinkedIn analytics |
 
@@ -40,36 +40,40 @@ lumina_lob/
 │   ├── base.py           # Agent ABC
 │   ├── noise_trader.py   # random arrival Poisson model
 │   ├── informed_trader.py # directional signal with impact
-│   └── market_maker.py   # inventory-skewed quoting
+│   ├── market_maker.py   # inventory-skewed quoting
+│   └── skewed_market_maker.py # inventory-sensitive quoting
 ├── market_model/
 │   ├── reference_price.py # Brownian + jump process
-│   ├── impact.py         # propagator / Almgren-Chriss
-│   └── arrival.py        # calibrated order arrival rates
+│   └── impact.py         # propagator / Almgren-Chriss
 ├── rl/
 │   ├── env.py            # Gymnasium market-making env
-│   ├── rewards.py        # P&L + inventory penalty
-│   └── train.py          # PPO/SAC training script
+│   ├── train.py          # PPO/SAC training script
+│   ├── compare.py        # strategy comparison helpers
+│   └── evaluate.py       # evaluation helpers
 ├── data/
 │   ├── polygon.py        # Polygon.io ingest
 │   ├── databento.py      # Databento ingest
-│   └── calibration.py    # fit arrival + impact params
-├── cpp/
-│   ├── include/          # C++ headers
-│   ├── src/              # C++ implementation
-│   ├── bindings.cpp      # pybind11
-│   └── CMakeLists.txt
+│   ├── calibration.py    # fit arrival + impact params
+│   └── replay.py         # tick-data replay
 ├── viz/
 │   ├── depth_ladder.py   # matplotlib book plot
-│   └── realtime.py       # WebGL / Plotly streaming
-├── benchmarks/
-│   └── engine_benchmark.py
-├── tests/
-│   └── test_*.py
-└── notebooks/
-    ├── 01_matching_engine_demo.ipynb
-    ├── 02_agents_and_impact.ipynb
-    ├── 03_rl_market_maker.ipynb
-    └── 04_calibration.ipynb
+│   ├── history.py        # time-series plots
+│   └── realtime.py       # streaming visualizer
+cpp/
+├── include/              # C++ headers
+├── src/                  # C++ implementation
+├── tests/                # C++ tests
+├── bindings.cpp          # pybind11
+└── CMakeLists.txt
+benchmarks/
+└── engine_benchmark.py
+tests/
+└── test_*.py
+notebooks/
+├── 02_agents_and_impact.ipynb
+├── 03_rl_market_maker.ipynb
+├── 04_calibration.ipynb
+└── 05_benchmark_report.ipynb
 ```
 
 ## Checkpoint list

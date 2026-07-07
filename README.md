@@ -62,6 +62,8 @@ print(book.snapshot())
 print(book.trades)
 ```
 
+For an interactive walkthrough, open the first available notebook: [`notebooks/02_agents_and_impact.ipynb`](notebooks/02_agents_and_impact.ipynb).
+
 ## Features
 
 | Feature | Status |

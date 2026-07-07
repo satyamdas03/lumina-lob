@@ -1,18 +1,19 @@
 """Compare PPO and SAC market-maker agents on ``MarketMakerEnv``."""
 from __future__ import annotations
 
-from typing import Callable, Dict
+from collections.abc import Callable
 
 import gymnasium as gym
+import numpy as np
 
 from lumina_lob.rl.train import evaluate_agent, train_ppo, train_sac
 
 
 def compare_ppo_sac(
-    env_factory: Callable[[], gym.Env],
+    env_factory: Callable[[], gym.Env[np.ndarray, np.ndarray]],
     total_timesteps: int = 10_000,
     n_eval_episodes: int = 5,
-) -> Dict[str, Dict[str, float]]:
+) -> dict[str, dict[str, float]]:
     """Train PPO and SAC agents and return their evaluation statistics.
 
     Parameters

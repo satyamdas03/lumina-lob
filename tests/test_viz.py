@@ -15,7 +15,6 @@ from lumina_lob.viz import (
 )
 
 
-
 def test_plot_depth_ladder_returns_figure():
     """Verify the depth-ladder plot accepts a Python OrderBook and returns a Figure."""
     book = OrderBook()
@@ -156,6 +155,7 @@ def test_run_animation_returns_funcanimation():
 def test_draw_depth_ladder_empty_book():
     """Internal depth-ladder renderer shows an empty title when the book is empty."""
     import matplotlib.pyplot as plt
+
     from lumina_lob.viz.realtime import _draw_depth_ladder
 
     fig, ax = plt.subplots()

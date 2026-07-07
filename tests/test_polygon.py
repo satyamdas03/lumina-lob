@@ -9,7 +9,6 @@ import pytest
 
 from lumina_lob.data.polygon import PolygonClient
 
-
 SAMPLE_BAR_RESPONSE = {
     "ticker": "AAPL",
     "results": [

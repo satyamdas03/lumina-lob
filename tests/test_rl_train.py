@@ -1,8 +1,6 @@
 """Smoke tests for RL training helpers."""
 from __future__ import annotations
 
-import pytest
-
 from lumina_lob.rl.env import MarketMakerEnv
 from lumina_lob.rl.train import (
     evaluate_agent,

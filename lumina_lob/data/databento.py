@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Optional
 
 import databento as db
 import pandas as pd
@@ -23,7 +22,7 @@ class DatabentoClient:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         cache_dir: str = ".cache/databento",
     ) -> None:
         self.api_key = api_key if api_key is not None else os.environ.get("DATABENTO_API_KEY")

@@ -3,8 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from lumina_lob.core import MatchingEngine, Order, OrderBook, Side, OrderType
-
+from lumina_lob.core import MatchingEngine, Order, OrderBook, OrderType, Side
 
 # ---------- Order validation ----------
 

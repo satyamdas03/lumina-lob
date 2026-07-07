@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import List
 
 from lumina_lob.core import Order, OrderBook
 
@@ -15,6 +14,6 @@ class Agent(ABC):
     """
 
     @abstractmethod
-    def act(self, reference_price: float, book: OrderBook) -> List[Order]:
+    def act(self, reference_price: float, book: OrderBook) -> list[Order]:
         """Return a list of orders to submit at this simulation step."""
         ...

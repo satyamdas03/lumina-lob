@@ -56,7 +56,6 @@ def test_observation_time_fraction_increases():
     env = MarketMakerEnv(max_steps=10, warmup_steps=1, seed=3)
     env.reset(seed=3)
     _, _, _, _, _ = env.step(zero_action())
-    t1 = env._current_step
     obs1 = env._get_observation()
     _, _, _, _, _ = env.step(zero_action())
     obs2 = env._get_observation()
@@ -273,7 +272,7 @@ def test_compute_reward_price_appreciation():
     # Buy 10 shares at 100
     env._update_inventory(Side.BID, 10, 100.0)
     env._reference_price = 101.0
-    env.simulation.book  # ensure book exists
+    assert env.simulation.book is not None  # ensure book exists
     env._previous_total_pnl = env._cash + env._inventory * 100.0
     # Mark to market at 101 gives +10 unrealised gain
     assert env._compute_reward() == pytest.approx(10.0)

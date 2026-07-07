@@ -68,7 +68,7 @@ print(book.trades)
 | PyPI packaging | ✅ Done |
 | GitHub Actions CI | ✅ Done |
 | MkDocs documentation site | ✅ Done |
-| Technical blog post + social launch | 🔲 Planned |
+| Technical blog post + social launch | ✅ Done |
 
 ## Roadmap
 
@@ -82,7 +82,7 @@ The project is built in six phases:
 | Phase 3 | RL market maker | ✅ Done |
 | Phase 4 | C++ performance layer | ✅ Done |
 | Phase 5 | Visualization | ✅ Done |
-| Phase 6 | Packaging + publication | 🚧 In progress |
+| Phase 6 | Packaging + publication | ✅ Done |
 
 ## Learn more
 

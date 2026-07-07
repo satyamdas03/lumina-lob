@@ -10,7 +10,6 @@ The price is floored at a small positive epsilon to avoid zero/negative quotes.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 import numpy as np
 
@@ -48,11 +47,11 @@ class ReferencePriceProcess:
     jump_intensity: float = 0.0
     jump_mean: float = 0.0
     jump_std: float = 0.05
-    seed: Optional[int] = None
+    seed: int | None = None
     min_price: float = 0.0001
 
     _rng: np.random.Generator = field(init=False, repr=False)
-    _path: List[float] = field(init=False, repr=False)
+    _path: list[float] = field(init=False, repr=False)
     _steps: int = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -79,7 +78,7 @@ class ReferencePriceProcess:
         return self._path[-1]
 
     @property
-    def path(self) -> List[float]:
+    def path(self) -> list[float]:
         """Full price history including the initial price."""
         return list(self._path)
 
@@ -106,9 +105,9 @@ class ReferencePriceProcess:
         new_price = max(prev * np.exp(diffusion + jump), self.min_price)
         self._path.append(float(new_price))
         self._steps += 1
-        return new_price
+        return float(new_price)
 
-    def simulate(self, n_steps: int) -> List[float]:
+    def simulate(self, n_steps: int) -> list[float]:
         """Simulate n_steps ahead and return the full path."""
         if n_steps <= 0:
             raise ValueError("n_steps must be positive")
@@ -124,7 +123,7 @@ class ReferencePriceProcess:
         self._steps += n_steps
         return self.path
 
-    def reset(self, price: Optional[float] = None) -> None:
+    def reset(self, price: float | None = None) -> None:
         """Reset the process to the initial price or a new price."""
         start = self.initial_price if price is None else price
         if start <= 0:

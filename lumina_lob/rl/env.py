@@ -1,11 +1,12 @@
 """Gymnasium environment for training an RL market maker."""
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from typing import Any, cast
 
 import gymnasium as gym
 import numpy as np
 
+from lumina_lob.agents.base import Agent
 from lumina_lob.agents.informed_trader import InformedTrader
 from lumina_lob.agents.noise_trader import NoiseTrader
 from lumina_lob.core.book import OrderBook
@@ -15,7 +16,7 @@ from lumina_lob.market_model.reference_price import ReferencePriceProcess
 from lumina_lob.simulation import Simulation
 
 
-class MarketMakerEnv(gym.Env):
+class MarketMakerEnv(gym.Env[np.ndarray, np.ndarray]):
     """A Gymnasium environment where an agent acts as a single market maker.
 
     The observation combines the current limit-order-book state, the agent's
@@ -52,7 +53,7 @@ class MarketMakerEnv(gym.Env):
         min_quote_size: int = 10,
         max_quote_size: int = 100,
         inventory_penalty: float = 0.0,
-        seed: Optional[int] = None,
+        seed: int | None = None,
     ) -> None:
         super().__init__()
         self.max_steps = max(1, int(max_steps))
@@ -64,7 +65,7 @@ class MarketMakerEnv(gym.Env):
         self.inventory_penalty = float(inventory_penalty)
         self._seed = seed
 
-        self.observation_features: List[str] = [
+        self.observation_features: list[str] = [
             "best_bid_norm",
             "best_ask_norm",
             "mid_price_norm",
@@ -91,22 +92,22 @@ class MarketMakerEnv(gym.Env):
             dtype=np.float32,
         )
 
-        self.simulation: Optional[Simulation] = None
+        self.simulation: Simulation | None = None
         self._inventory = 0.0
         self._cash = 0.0
         self._avg_fill_price = 0.0
         self._current_step = 0
         self._reference_price = 100.0
         self._previous_total_pnl = 0.0
-        self._pending_action: Optional[np.ndarray] = None
+        self._pending_action: np.ndarray | None = None
         self._proxy = self._AgentProxy(self)
 
     def reset(
         self,
         *,
-        seed: Optional[int] = None,
-        options: Optional[Dict] = None,
-    ) -> Tuple[np.ndarray, Dict]:
+        seed: int | None = None,
+        options: dict[str, Any] | None = None,
+    ) -> tuple[np.ndarray, dict[str, Any]]:
         super().reset(seed=seed)
         effective_seed = seed if seed is not None else self._seed
 
@@ -150,10 +151,10 @@ class MarketMakerEnv(gym.Env):
         self._previous_total_pnl = self._total_pnl()
 
         observation = self._get_observation()
-        info: Dict = {"reference_price": self._reference_price}
+        info: dict[str, Any] = {"reference_price": self._reference_price}
         return observation, info
 
-    def step(self, action) -> Tuple[np.ndarray, float, bool, bool, Dict]:
+    def step(self, action: np.ndarray) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         """Advance the market by one step and return the new observation."""
         if self.simulation is None:
             raise RuntimeError("Environment must be reset before calling step()")
@@ -167,13 +168,13 @@ class MarketMakerEnv(gym.Env):
 
         metrics = self.simulation.step()
         self._current_step += 1
-        self._reference_price = float(metrics["reference_price"])
+        self._reference_price = cast(float, metrics["reference_price"])
 
         observation = self._get_observation()
         reward = self._compute_reward()
         terminated = False
         truncated = self._current_step >= self.max_steps
-        info = {
+        info: dict[str, Any] = {
             "reference_price": self._reference_price,
             "inventory": self._inventory,
             "cash": self._cash,
@@ -183,7 +184,10 @@ class MarketMakerEnv(gym.Env):
     def _get_observation(self) -> np.ndarray:
         """Build the normalised observation vector."""
         if self.simulation is None:
-            return np.zeros(self.observation_space.shape, dtype=np.float32)
+            shape = self.observation_space.shape
+            if shape is None:
+                shape = (len(self.observation_features),)
+            return np.zeros(shape, dtype=np.float32)
 
         book = self.simulation.book
         best_bid = book.best_bid if book.best_bid is not None else self._reference_price
@@ -216,26 +220,26 @@ class MarketMakerEnv(gym.Env):
         return obs
 
     def _update_inventory(
-        self, side, qty: int, price: Optional[float] = None
+        self, side: Side, qty: int, price: float | None = None
     ) -> None:
         """Record a fill against the agent's inventory."""
-        qty = float(qty)
+        fill_qty = float(qty)
         fill_price = self._fill_price(price)
         if side == Side.BID:  # BID: agent bought
-            cost = qty * fill_price
+            cost = fill_qty * fill_price
             total_value = self._inventory * self._avg_fill_price + cost
-            self._inventory += qty
+            self._inventory += fill_qty
             self._cash -= cost
             if self._inventory > 0:
                 self._avg_fill_price = total_value / self._inventory
         else:  # ASK: agent sold
-            proceeds = qty * fill_price
-            self._inventory -= qty
+            proceeds = fill_qty * fill_price
+            self._inventory -= fill_qty
             self._cash += proceeds
             if self._inventory == 0:
                 self._avg_fill_price = 0.0
 
-    def _fill_price(self, price: Optional[float]) -> float:
+    def _fill_price(self, price: float | None) -> float:
         """Resolve a fill price, falling back to mid or reference price."""
         if price is not None:
             return float(price)
@@ -262,7 +266,7 @@ class MarketMakerEnv(gym.Env):
 
     def _action_to_quotes(
         self, action: np.ndarray, reference_price: float
-    ) -> List[Order]:
+    ) -> list[Order]:
         """Translate a continuous action into bid/ask limit orders."""
         if self.simulation is None:
             return []
@@ -281,7 +285,7 @@ class MarketMakerEnv(gym.Env):
         bid_price = bid_tick * self.tick_size
         ask_price = ask_tick * self.tick_size
 
-        orders: List[Order] = []
+        orders: list[Order] = []
         if bid_size > 0:
             order = Order(
                 order_id=0,
@@ -311,13 +315,13 @@ class MarketMakerEnv(gym.Env):
             if getattr(book.orders[order_id], "_agent_quote", False):
                 book.cancel(order_id)
 
-    class _AgentProxy:
+    class _AgentProxy(Agent):
         """Thin agent wrapper that turns the env action into limit orders."""
 
-        def __init__(self, env: "MarketMakerEnv") -> None:
+        def __init__(self, env: MarketMakerEnv) -> None:
             self.env = env
 
-        def act(self, reference_price: float, book: OrderBook) -> List[Order]:
+        def act(self, reference_price: float, book: OrderBook) -> list[Order]:
             """Cancel old quotes and submit new ones from the pending action."""
             self.env._cancel_agent_quotes()
             action = self.env._pending_action

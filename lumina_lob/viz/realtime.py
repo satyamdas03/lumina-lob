@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
@@ -11,7 +11,6 @@ try:
     import matplotlib.animation as _animation
     import matplotlib.pyplot as plt
     from matplotlib.animation import FuncAnimation
-    from matplotlib.figure import Figure
 except ImportError as exc:  # pragma: no cover
     raise ImportError(
         "matplotlib is required for visualization. "
@@ -101,15 +100,21 @@ class SimulationAnimator:
         valid = [(r["step"], r["mid_price"]) for r in history if r["mid_price"] is not None]
         if not valid:
             return
-        steps, mids = zip(*valid)
+        steps, mids = zip(*valid, strict=False)
         self._price_line.set_data(steps, mids)
         self.ax_price.set_xlim(min(steps), max(max(steps), min(steps) + 1))
         y_min, y_max = min(mids), max(mids)
         pad = max((y_max - y_min) * 0.1, 0.01)
         self.ax_price.set_ylim(y_min - pad, y_max + pad)
 
-        trade_steps = [r["step"] for r in history if r["trade_count"] > 0 and r["mid_price"] is not None]
-        trade_mids = [r["mid_price"] for r in history if r["trade_count"] > 0 and r["mid_price"] is not None]
+        trade_steps = [
+            cast(int, r["step"]) for r in history
+            if cast(int, r["trade_count"]) > 0 and r["mid_price"] is not None
+        ]
+        trade_mids = [
+            cast(float, r["mid_price"]) for r in history
+            if cast(int, r["trade_count"]) > 0 and r["mid_price"] is not None
+        ]
         if trade_mids:
             self._trade_scatter.set_offsets(np.column_stack([trade_steps, trade_mids]))
         else:

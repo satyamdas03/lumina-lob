@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Literal, Optional
+from typing import Literal
 
 import numpy as np
 
@@ -47,7 +47,7 @@ class NoiseTrader(Agent):
     side_bias: float = 0.5
     price_offset_max: int = 5
     tick_size: float = 1.0
-    seed: Optional[int] = None
+    seed: int | None = None
 
     _rng: np.random.Generator = field(init=False, repr=False)
     _next_order_id: int = field(init=False, repr=False)
@@ -71,10 +71,10 @@ class NoiseTrader(Agent):
         self._rng = np.random.default_rng(self.seed)
         self._next_order_id = 1
 
-    def act(self, reference_price: float, book: OrderBook) -> List[Order]:
+    def act(self, reference_price: float, book: OrderBook) -> list[Order]:
         """Generate a batch of random limit orders."""
         n_orders = self._rng.poisson(lam=self.arrival_rate)
-        orders: List[Order] = []
+        orders: list[Order] = []
         for _ in range(n_orders):
             side = Side.BID if self._rng.random() < self.side_bias else Side.ASK
             qty = self._draw_qty()

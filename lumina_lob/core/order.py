@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Optional
 
 
 class Side(Enum):
@@ -24,14 +23,14 @@ class Order:
 
     order_id: int
     side: Side
-    price: Optional[int]
+    price: float | None
     qty: int
     order_type: OrderType = OrderType.LIMIT
     filled_qty: int = field(default=0, init=False)
-    next: Optional["Order"] = field(default=None, repr=False)
-    prev: Optional["Order"] = field(default=None, repr=False)
+    next: Order | None = field(default=None, repr=False)
+    prev: Order | None = field(default=None, repr=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.price is not None and self.price <= 0:
             raise ValueError("price must be positive")
         if self.qty <= 0:

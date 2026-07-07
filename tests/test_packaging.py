@@ -4,7 +4,6 @@ import importlib
 
 import lumina_lob
 
-
 PUBLIC_SUBMODULES = [
     "lumina_lob.core",
     "lumina_lob.agents",

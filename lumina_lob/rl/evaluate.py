@@ -1,8 +1,8 @@
 """Evaluate heuristic and trained RL market-making policies."""
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, List
 
 import numpy as np
 
@@ -40,7 +40,10 @@ class SimpleMarketMakerPolicy:
     def __call__(self, env: MarketMakerEnv) -> np.ndarray:
         """Return an action vector for the current env state."""
         if env.simulation is None:
-            return np.zeros(env.action_space.shape, dtype=np.float32)
+            shape = env.action_space.shape
+            if shape is None:
+                shape = (4,)
+            return np.zeros(shape, dtype=np.float32)
 
         max_position = 1_000.0
         inventory_ratio = env._inventory / max_position
@@ -66,9 +69,9 @@ def evaluate_heuristic_policy(
     env_factory: Callable[[], MarketMakerEnv],
     policy: Callable[[MarketMakerEnv], np.ndarray],
     n_episodes: int = 5,
-) -> List[EpisodeResult]:
+) -> list[EpisodeResult]:
     """Run a heuristic policy for several episodes and return summaries."""
-    results: List[EpisodeResult] = []
+    results: list[EpisodeResult] = []
     for _ in range(n_episodes):
         env = env_factory()
         obs, _ = env.reset()
@@ -97,7 +100,7 @@ def evaluate_heuristic_policy(
     return results
 
 
-def summarize_results(results: List[EpisodeResult]) -> dict:
+def summarize_results(results: list[EpisodeResult]) -> dict[str, float]:
     """Return mean and std of key metrics across episodes."""
     if not results:
         return {}

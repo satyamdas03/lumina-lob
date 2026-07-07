@@ -38,15 +38,15 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install build
 
-      - name: Build wheel
+      - name: Build distributions
         run: |
-          python -m build --wheel
+          python -m build
 
-      - name: Upload wheel artifact
+      - name: Upload distribution artifact
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}-${{ matrix.python-version }}
-          path: dist/*.whl
+          name: dist-${{ matrix.os }}-${{ matrix.python-version }}
+          path: dist/*
           if-no-files-found: error
 
   publish:
@@ -60,11 +60,11 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - name: Download all wheels
+      - name: Download all distributions
         uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: wheels-*
+          pattern: dist-*
           merge-multiple: true
 
       - name: Publish package to PyPI

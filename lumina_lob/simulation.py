@@ -1,10 +1,10 @@
 """Simulation orchestrator: runs agents and matching engine through time."""
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Any
 
 from lumina_lob.agents.base import Agent
-from lumina_lob.core import MatchingEngine, OrderBook, Side
+from lumina_lob.core import MatchingEngine, Order, OrderBook, Side
 from lumina_lob.market_model.reference_price import ReferencePriceProcess
 
 
@@ -36,11 +36,11 @@ class Simulation:
 
     def __init__(
         self,
-        book: Optional[OrderBook] = None,
-        engine: Optional[MatchingEngine] = None,
-        reference_price: Optional[ReferencePriceProcess] = None,
-        agents: Optional[List[Agent]] = None,
-        seed: Optional[int] = None,
+        book: OrderBook | None = None,
+        engine: MatchingEngine | None = None,
+        reference_price: ReferencePriceProcess | None = None,
+        agents: list[Agent] | None = None,
+        seed: int | None = None,
     ) -> None:
         self.book = book if book is not None else OrderBook()
         self.engine = engine if engine is not None else MatchingEngine(self.book)
@@ -48,13 +48,13 @@ class Simulation:
             self.reference_price = reference_price
         else:
             self.reference_price = ReferencePriceProcess(seed=seed)
-        self.agents: List[Agent] = list(agents) if agents is not None else []
-        self.history: List[Dict[str, object]] = []
+        self.agents: list[Agent] = list(agents) if agents is not None else []
+        self.history: list[dict[str, object]] = []
         self._next_order_id = 1
-        self._order_owner: Dict[int, Agent] = {}
-        self._order_side: Dict[int, Side] = {}
+        self._order_owner: dict[int, Agent] = {}
+        self._order_side: dict[int, Side] = {}
 
-    def step(self) -> Dict[str, object]:
+    def step(self) -> dict[str, object]:
         """Advance the simulation by one time step.
 
         Returns
@@ -85,7 +85,7 @@ class Simulation:
             elif side == Side.ASK:
                 signed_volume -= qty
 
-        record = {
+        record: dict[str, object] = {
             "step": len(self.history) + 1,
             "reference_price": reference_price,
             "best_bid": self.book.best_bid,
@@ -100,7 +100,7 @@ class Simulation:
         self.history.append(record)
         return record
 
-    def run(self, n_steps: int) -> List[Dict[str, object]]:
+    def run(self, n_steps: int) -> list[dict[str, object]]:
         """Run ``n_steps`` and return the full history list."""
         if n_steps <= 0:
             raise ValueError("n_steps must be positive")
@@ -108,13 +108,13 @@ class Simulation:
             self.step()
         return list(self.history)
 
-    def to_dataframe(self):
+    def to_dataframe(self) -> Any:
         """Return the simulation history as a pandas ``DataFrame``."""
         import pandas as pd
 
         return pd.DataFrame(self.history)
 
-    def _submit(self, order, agent: Agent) -> None:
+    def _submit(self, order: Order, agent: Agent) -> None:
         """Assign a globally unique order id and route the order to the engine."""
         new_id = self._next_order_id
         self._next_order_id += 1

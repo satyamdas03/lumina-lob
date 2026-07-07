@@ -138,7 +138,7 @@ def test_draw_jump_zero_std_deterministic():
     )
     jumps = proc._draw_jump(1000)
     # Every jump should be exactly 0.05 times the Poisson count, no randomness beyond arrival count
-    assert all(j == 0.05 * count or j == 0.0 for j, count in zip(jumps, np.round(jumps / 0.05)))
+    assert all(j == 0.05 * count or j == 0.0 for j, count in zip(jumps, np.round(jumps / 0.05), strict=False))
 
 
 def test_compound_jump_sum():

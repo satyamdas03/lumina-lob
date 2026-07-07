@@ -1,7 +1,7 @@
 """Unit tests for event log."""
 from __future__ import annotations
 
-from lumina_lob.core import MatchingEngine, Order, OrderBook, OrderType, Side
+from lumina_lob.core import MatchingEngine, Order, OrderBook, Side
 from lumina_lob.core.event_log import EventLog, EventType
 
 

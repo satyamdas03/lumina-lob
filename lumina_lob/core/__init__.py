@@ -2,7 +2,7 @@
 
 from .book import OrderBook
 from .matching import MatchingEngine
-from .order import Order, Side, OrderType
+from .order import Order, OrderType, Side
 from .price_level import PriceLevel
 
 __all__ = ["OrderBook", "MatchingEngine", "Order", "Side", "OrderType", "PriceLevel"]

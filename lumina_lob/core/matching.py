@@ -1,10 +1,9 @@
 """Matching engine: price-time priority fills."""
 from __future__ import annotations
 
-from typing import Optional
-
 from lumina_lob.core.book import OrderBook
 from lumina_lob.core.order import Order, OrderType, Side
+from lumina_lob.core.price_level import PriceLevel
 
 
 class MatchingEngine:
@@ -25,11 +24,12 @@ class MatchingEngine:
             self._match_fok(order)
             return
         # Limit order
+        price = order.price
         if order.side == Side.BID:
-            if self.book.best_ask is not None and order.price >= self.book.best_ask:
+            if price is not None and self.book.best_ask is not None and price >= self.book.best_ask:
                 self._match_buy(order)
         else:
-            if self.book.best_bid is not None and order.price <= self.book.best_bid:
+            if price is not None and self.book.best_bid is not None and price <= self.book.best_bid:
                 self._match_sell(order)
         if not order.is_filled:
             self.book.add(order)
@@ -84,9 +84,12 @@ class MatchingEngine:
                 del levels[p]
 
     def _match_buy(self, order: Order) -> None:
+        price = order.price
+        if price is None:
+            return
         while not order.is_filled:
             best_ask = self.book.best_ask
-            if best_ask is None or best_ask > order.price:
+            if best_ask is None or best_ask > price:
                 break
             level = self.book.asks[best_ask]
             self._fill_at_price(order, level)
@@ -94,16 +97,19 @@ class MatchingEngine:
                 del self.book.asks[best_ask]
 
     def _match_sell(self, order: Order) -> None:
+        price = order.price
+        if price is None:
+            return
         while not order.is_filled:
             best_bid = self.book.best_bid
-            if best_bid is None or best_bid < order.price:
+            if best_bid is None or best_bid < price:
                 break
             level = self.book.bids[best_bid]
             self._fill_at_price(order, level)
             if level.is_empty():
                 del self.book.bids[best_bid]
 
-    def _fill_at_price(self, order: Order, level) -> None:
+    def _fill_at_price(self, order: Order, level: PriceLevel) -> None:
         for resting in list(level):
             if order.is_filled:
                 break

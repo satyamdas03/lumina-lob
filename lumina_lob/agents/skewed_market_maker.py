@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Tuple
 
 from lumina_lob.agents.base import Agent
 from lumina_lob.core import Order, OrderBook, Side
@@ -60,10 +59,10 @@ class SkewedMarketMaker(Agent):
         """Current signed inventory (positive = long, negative = short)."""
         return self._inventory
 
-    def act(self, reference_price: float, book: OrderBook) -> List[Order]:
+    def act(self, reference_price: float, book: OrderBook) -> list[Order]:
         """Submit inventory-skewed bid/ask quotes."""
         bid_price, ask_price = self._quote_prices(reference_price)
-        orders: List[Order] = []
+        orders: list[Order] = []
 
         if self._can_quote_bid():
             orders.append(
@@ -89,7 +88,7 @@ class SkewedMarketMaker(Agent):
 
         return orders
 
-    def _quote_prices(self, reference_price: float) -> Tuple[float, float]:
+    def _quote_prices(self, reference_price: float) -> tuple[float, float]:
         """Compute bid and ask quote prices with inventory skew."""
         if self.max_inventory == 0:
             ratio = 0.0

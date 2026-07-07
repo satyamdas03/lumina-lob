@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Literal, Optional
+from typing import Literal
 
 import numpy as np
 
@@ -43,7 +43,7 @@ class InformedTrader(Agent):
     order_type: Literal["market", "limit"] = "market"
     price_offset: int = 1
     tick_size: float = 1.0
-    seed: Optional[int] = None
+    seed: int | None = None
 
     _rng: np.random.Generator = field(init=False, repr=False)
     _next_order_id: int = field(init=False, repr=False)
@@ -75,7 +75,7 @@ class InformedTrader(Agent):
         """Cumulative quantity traded by this agent."""
         return self._total_traded
 
-    def act(self, reference_price: float, book: OrderBook) -> List[Order]:
+    def act(self, reference_price: float, book: OrderBook) -> list[Order]:
         """Generate an order if the trader participates this step."""
         if self._rng.random() >= self.participation_rate:
             return []

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Tuple
 
 from lumina_lob.agents.base import Agent
 from lumina_lob.core import Order, OrderBook, Side
@@ -54,10 +53,10 @@ class MarketMaker(Agent):
         """Current signed inventory (positive = long, negative = short)."""
         return self._inventory
 
-    def act(self, reference_price: float, book: OrderBook) -> List[Order]:
+    def act(self, reference_price: float, book: OrderBook) -> list[Order]:
         """Submit bid/ask quotes around reference price, respecting inventory limits."""
         bid_price, ask_price = self._quote_prices(reference_price)
-        orders: List[Order] = []
+        orders: list[Order] = []
 
         if self._can_quote_bid():
             orders.append(
@@ -83,7 +82,7 @@ class MarketMaker(Agent):
 
         return orders
 
-    def _quote_prices(self, reference_price: float) -> Tuple[float, float]:
+    def _quote_prices(self, reference_price: float) -> tuple[float, float]:
         """Compute bid and ask quote prices rounded to ticks."""
         half_spread = self.spread_half_width * self.tick_size
         bid_tick = round((reference_price - half_spread) / self.tick_size)

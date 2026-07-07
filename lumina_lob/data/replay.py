@@ -1,7 +1,7 @@
 """Replay historical tick events through the matching engine."""
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -22,7 +22,7 @@ class ReplayEngine:
     spread distribution produced by the engine.
     """
 
-    def __init__(self, book: Optional[OrderBook] = None, engine: Optional[MatchingEngine] = None, default_quote_size: int = 100):
+    def __init__(self, book: OrderBook | None = None, engine: MatchingEngine | None = None, default_quote_size: int = 100):
         self.book = book if book is not None else OrderBook()
         self.engine = engine if engine is not None else MatchingEngine(self.book)
         self.default_quote_size = int(default_quote_size)
@@ -30,8 +30,8 @@ class ReplayEngine:
         self._quote_order_ids: list[int] = []
         self._timestamps: list[pd.Timestamp] = []
         self._spreads: list[float] = []
-        self._best_bids: list[Optional[float]] = []
-        self._best_asks: list[Optional[float]] = []
+        self._best_bids: list[float | None] = []
+        self._best_asks: list[float | None] = []
         self._trade_count = 0
         self._trade_volume = 0.0
 
@@ -145,7 +145,7 @@ class ReplayEngine:
         self._trade_count += 1
         self._trade_volume += size
 
-    def _record(self, timestamp) -> None:
+    def _record(self, timestamp: Any) -> None:
         self._timestamps.append(pd.Timestamp(timestamp))
         bid = self.book.best_bid
         ask = self.book.best_ask
@@ -161,7 +161,7 @@ class ReplayEngine:
         return self._order_id
 
 
-def validate_spread_distribution(real_spreads: pd.Series, simulated_spreads: pd.Series, bins: Optional[int] = None) -> float:
+def validate_spread_distribution(real_spreads: pd.Series, simulated_spreads: pd.Series, bins: int | None = None) -> float:
     """Return a histogram-overlap similarity score between two spread distributions.
 
     The score is in ``[0, 1]`` where ``1`` means identical normalized histograms and
@@ -188,7 +188,7 @@ def validate_spread_distribution(real_spreads: pd.Series, simulated_spreads: pd.
     return float(overlap)
 
 
-def _sign_from_value(value) -> int:
+def _sign_from_value(value: Any) -> int:
     """Map a side label to +1 (buy/bid), -1 (sell/ask), or 0 (unknown)."""
     if value is None:
         return 0

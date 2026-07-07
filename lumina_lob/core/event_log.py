@@ -1,10 +1,9 @@
 """Nanosecond-precision event journal for order book lifecycle."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
 from time import perf_counter_ns
-from typing import Dict, List, Optional
 
 
 class EventType(Enum):
@@ -22,21 +21,21 @@ class Event:
     timestamp_ns: int
     event_type: EventType
     order_id: int
-    side: Optional[str] = None
-    price: Optional[int] = None
-    qty: Optional[int] = None
-    filled_qty: Optional[int] = None
-    counterparty_id: Optional[int] = None
-    trade_qty: Optional[int] = None
-    best_bid: Optional[int] = None
-    best_ask: Optional[int] = None
+    side: str | None = None
+    price: float | None = None
+    qty: int | None = None
+    filled_qty: int | None = None
+    counterparty_id: int | None = None
+    trade_qty: int | None = None
+    best_bid: float | None = None
+    best_ask: float | None = None
 
 
 class EventLog:
     """Append-only journal of all book events."""
 
     def __init__(self) -> None:
-        self.events: List[Event] = []
+        self.events: list[Event] = []
         self._counter: int = 0
 
     def _next_id(self) -> int:
@@ -46,7 +45,7 @@ class EventLog:
     def _now_ns(self) -> int:
         return perf_counter_ns()
 
-    def log_add(self, order_id: int, side: str, price: Optional[int], qty: int, best_bid: Optional[int], best_ask: Optional[int]) -> Event:
+    def log_add(self, order_id: int, side: str, price: float | None, qty: int, best_bid: float | None, best_ask: float | None) -> Event:
         ev = Event(
             event_id=self._next_id(),
             timestamp_ns=self._now_ns(),
@@ -61,7 +60,7 @@ class EventLog:
         self.events.append(ev)
         return ev
 
-    def log_cancel(self, order_id: int, best_bid: Optional[int], best_ask: Optional[int]) -> Event:
+    def log_cancel(self, order_id: int, best_bid: float | None, best_ask: float | None) -> Event:
         ev = Event(
             event_id=self._next_id(),
             timestamp_ns=self._now_ns(),
@@ -73,7 +72,7 @@ class EventLog:
         self.events.append(ev)
         return ev
 
-    def log_modify(self, order_id: int, new_qty: int, best_bid: Optional[int], best_ask: Optional[int]) -> Event:
+    def log_modify(self, order_id: int, new_qty: int, best_bid: float | None, best_ask: float | None) -> Event:
         ev = Event(
             event_id=self._next_id(),
             timestamp_ns=self._now_ns(),
@@ -86,7 +85,7 @@ class EventLog:
         self.events.append(ev)
         return ev
 
-    def log_fill(self, order_id: int, counterparty_id: int, trade_qty: int, price: int, side: str, filled_qty: int, best_bid: Optional[int], best_ask: Optional[int]) -> Event:
+    def log_fill(self, order_id: int, counterparty_id: int, trade_qty: int, price: float, side: str, filled_qty: int, best_bid: float | None, best_ask: float | None) -> Event:
         ev = Event(
             event_id=self._next_id(),
             timestamp_ns=self._now_ns(),
@@ -103,7 +102,7 @@ class EventLog:
         self.events.append(ev)
         return ev
 
-    def to_dicts(self) -> List[Dict]:
+    def to_dicts(self) -> list[dict[str, object]]:
         return [
             {
                 "event_id": e.event_id,

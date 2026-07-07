@@ -13,12 +13,12 @@ except ImportError as exc:  # pragma: no cover
         "Install it with `pip install matplotlib` or use the viz extras."
     ) from exc
 
-from lumina_lob.core import OrderBook, Side
+from lumina_lob.core import Side
 
 try:
     from lumina_lob import _core  # type: ignore[attr-defined]
 except ImportError:  # pragma: no cover
-    _core = None  # type: ignore[assignment]
+    _core = None
 
 
 def _detect_side_enums(book: Any) -> tuple[Any, Any]:
@@ -28,7 +28,7 @@ def _detect_side_enums(book: Any) -> tuple[Any, Any]:
     return Side.BID, Side.ASK
 
 
-def _to_level_items(raw: Any, reverse: bool) -> list[tuple[int, int]]:
+def _to_level_items(raw: Any, reverse: bool) -> list[tuple[float, int]]:
     """Normalise `depth()` output to a list of (price, qty) pairs."""
     if isinstance(raw, dict):
         items = sorted(raw.items(), key=lambda item: item[0], reverse=reverse)

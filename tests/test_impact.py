@@ -5,7 +5,6 @@ import pytest
 
 from lumina_lob.market_model import AlmgrenChrissImpact, PropagatorImpact
 
-
 # ---------- PropagatorImpact ----------
 
 def test_propagator_validation_permanent():

@@ -1,8 +1,8 @@
 """Price level: queue of orders at same price using doubly-linked list."""
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Optional
 
 from .order import Order
 
@@ -11,9 +11,9 @@ from .order import Order
 class PriceLevel:
     """Orders at one price level. FIFO queue via linked list."""
 
-    price: int
-    head: Optional[Order] = field(default=None, init=False)
-    tail: Optional[Order] = field(default=None, init=False)
+    price: float
+    head: Order | None = field(default=None, init=False)
+    tail: Order | None = field(default=None, init=False)
     total_qty: int = field(default=0, init=False)
     order_count: int = field(default=0, init=False)
 
@@ -69,7 +69,7 @@ class PriceLevel:
     def is_empty(self) -> bool:
         return self.head is None
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Order]:
         node = self.head
         while node:
             yield node

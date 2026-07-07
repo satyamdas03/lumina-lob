@@ -35,7 +35,7 @@ The package is published to PyPI. If `pip install lumina-lob` is not yet live, t
    - **PyPI project name:** `lumina-lob`
    - **Owner:** `satyamdas03`
    - **Repository name:** `lumina-lob`
-   - **Workflow name:** `.github/workflows/build.yml`
+   - **Workflow name:** `build.yml`
    - **Environment name:** `pypi`
 4. Save. The next push of a `v*.*.*` tag will automatically publish.
 5. The `v0.1.1` tag is already pushed; after configuring the publisher, re-run the failed **Build wheels** workflow run or push a new `v*.*.*` tag.

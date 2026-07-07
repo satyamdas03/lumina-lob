@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.3 — 2026-07-07
+
+### Fixed
+- Switched wheel builds to `pypa/cibuildwheel` to generate PyPI-compliant `manylinux` wheels on Linux.
+- Build workflow now uploads one sdist plus cibuildwheel-generated wheels for Windows, macOS, and manylinux.
+
 ## v0.1.2 — 2026-07-07
 
 ### Fixed

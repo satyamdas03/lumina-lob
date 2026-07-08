@@ -48,6 +48,8 @@ nav:
       - Quickstart: tutorials/quickstart.md
       - Architecture: tutorials/architecture.md
       - Building a Custom Agent: tutorials/custom-agent.md
+  - Blog:
+      - Build a LOB Simulator: blog/build-a-lob-simulator.md
   - API Reference:
       - Core: api/core.md
       - Agents: api/agents.md

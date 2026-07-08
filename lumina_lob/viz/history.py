@@ -2,16 +2,24 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
 
 try:
     import matplotlib.pyplot as plt
-    from matplotlib.figure import Figure
-except ImportError as exc:  # pragma: no cover
-    raise ImportError(
-        "matplotlib is required for visualization. "
-        "Install it with `pip install matplotlib` or use the viz extras."
-    ) from exc
+except ImportError:  # pragma: no cover
+    plt = None  # type: ignore[assignment]
+
+
+def _ensure_matplotlib() -> None:
+    """Raise a helpful error if matplotlib is not installed."""
+    if plt is None:  # pragma: no cover
+        raise ImportError(
+            "matplotlib is required for visualization. "
+            "Install it with `pip install matplotlib` or use the viz extras."
+        )
 
 
 def _to_dataframe(history: Any) -> Any:
@@ -28,7 +36,7 @@ def _to_dataframe(history: Any) -> Any:
     return history
 
 
-def plot_simulation_history(history: Any) -> tuple[Figure, Any]:
+def plot_simulation_history(history: Any) -> tuple["Figure", Any]:
     """Plot mid price, spread, and trades from a simulation history.
 
     Parameters
@@ -44,6 +52,8 @@ def plot_simulation_history(history: Any) -> tuple[Figure, Any]:
     - bid-ask spread
     - trade volume per step
     """
+    _ensure_matplotlib()
+
     df = _to_dataframe(history)
 
     required = {"step", "mid_price", "spread", "trade_count", "trade_volume"}

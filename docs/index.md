@@ -68,7 +68,7 @@ print(book.trades)
 | PyPI packaging | ✅ Done |
 | GitHub Actions CI | ✅ Done |
 | MkDocs documentation site | ✅ Done |
-| Technical blog post + social launch | ✅ Done |
+| Technical blog post + social launch | ✅ Done (live on docs site) |
 
 ## Roadmap
 

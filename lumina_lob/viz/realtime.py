@@ -7,19 +7,27 @@ from typing import Any, cast
 
 import numpy as np
 
+from lumina_lob.simulation import Simulation
+
+from .depth_ladder import _detect_side_enums, _to_level_items
+
 try:
     import matplotlib.animation as _animation
     import matplotlib.pyplot as plt
     from matplotlib.animation import FuncAnimation
-except ImportError as exc:  # pragma: no cover
-    raise ImportError(
-        "matplotlib is required for visualization. "
-        "Install it with `pip install matplotlib` or use the viz extras."
-    ) from exc
+except ImportError:  # pragma: no cover
+    _animation = None  # type: ignore[assignment]
+    plt = None  # type: ignore[assignment]
+    FuncAnimation = None  # type: ignore[assignment,misc]
 
-from lumina_lob.simulation import Simulation
 
-from .depth_ladder import _detect_side_enums, _to_level_items
+def _ensure_matplotlib() -> None:
+    """Raise a helpful error if matplotlib is not installed."""
+    if plt is None or _animation is None or FuncAnimation is None:  # pragma: no cover
+        raise ImportError(
+            "matplotlib is required for visualization. "
+            "Install it with `pip install matplotlib` or use the viz extras."
+        )
 
 
 def _draw_depth_ladder(ax: Any, book: Any, top_n: int) -> None:
@@ -75,6 +83,8 @@ class SimulationAnimator:
         history_window: int = 50,
         interval_ms: int = 200,
     ) -> None:
+        _ensure_matplotlib()
+
         self.simulation = simulation
         self.top_n = top_n
         self.history_window = history_window
@@ -128,8 +138,9 @@ class SimulationAnimator:
         self.fig.tight_layout()
         return (self._price_line, self._trade_scatter)
 
-    def run(self, n_steps: int = 100) -> FuncAnimation:
+    def run(self, n_steps: int = 100) -> Any:
         """Return a ``FuncAnimation`` that runs *n_steps* frames."""
+        _ensure_matplotlib()
         return FuncAnimation(
             self.fig,
             self.update,
@@ -146,7 +157,7 @@ def run_animation(
     top_n: int = 10,
     history_window: int = 50,
     interval_ms: int = 200,
-) -> FuncAnimation:
+) -> Any:
     """Create and return a running animation for *simulation*.
 
     Parameters
@@ -177,7 +188,7 @@ def run_animation(
 
 
 def save_animation(
-    animation: FuncAnimation,
+    animation: Any,
     path: str | Path,
     fps: int = 5,
 ) -> None:
@@ -200,6 +211,8 @@ def save_animation(
         If the file extension is unsupported or the required writer is not
         available.
     """
+    _ensure_matplotlib()
+
     out = Path(path)
     writer_map = {".gif": "pillow", ".mp4": "ffmpeg"}
     ext = out.suffix.lower()

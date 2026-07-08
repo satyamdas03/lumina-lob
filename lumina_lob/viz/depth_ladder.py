@@ -2,23 +2,31 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+from lumina_lob.core import Side
+
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
 
 try:
     import matplotlib.pyplot as plt
-    from matplotlib.figure import Figure
-except ImportError as exc:  # pragma: no cover
-    raise ImportError(
-        "matplotlib is required for visualization. "
-        "Install it with `pip install matplotlib` or use the viz extras."
-    ) from exc
-
-from lumina_lob.core import Side
+except ImportError:  # pragma: no cover
+    plt = None  # type: ignore[assignment]
 
 try:
     from lumina_lob import _core  # type: ignore[attr-defined]
 except ImportError:  # pragma: no cover
     _core = None
+
+
+def _ensure_matplotlib() -> None:
+    """Raise a helpful error if matplotlib is not installed."""
+    if plt is None:  # pragma: no cover
+        raise ImportError(
+            "matplotlib is required for visualization. "
+            "Install it with `pip install matplotlib` or use the viz extras."
+        )
 
 
 def _detect_side_enums(book: Any) -> tuple[Any, Any]:
@@ -38,7 +46,7 @@ def _to_level_items(raw: Any, reverse: bool) -> list[tuple[float, int]]:
     return items
 
 
-def plot_depth_ladder(book: Any, top_n: int = 10) -> tuple[Figure, Any]:
+def plot_depth_ladder(book: Any, top_n: int = 10) -> tuple["Figure", Any]:
     """Render a horizontal depth-ladder plot for *book*.
 
     Parameters
@@ -53,6 +61,8 @@ def plot_depth_ladder(book: Any, top_n: int = 10) -> tuple[Figure, Any]:
     -------
     ``(fig, ax)`` from matplotlib.
     """
+    _ensure_matplotlib()
+
     if top_n <= 0:
         raise ValueError("top_n must be positive")
 

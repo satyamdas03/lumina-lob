@@ -83,7 +83,7 @@ For an interactive walkthrough, open the first available notebook: [`notebooks/0
 | PyPI packaging | ✅ Done |
 | GitHub Actions CI | ✅ Done |
 | MkDocs documentation site | ✅ Done |
-| Technical blog post | ✅ Done (draft) |
+| Technical blog post | ✅ Done (live on docs site) |
 | Social launch (LinkedIn/X) | ✅ Done (drafts) |
 | GitHub release + PyPI publish | ✅ Done (v0.1.4 published) |
 

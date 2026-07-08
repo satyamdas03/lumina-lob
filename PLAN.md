@@ -18,8 +18,9 @@ Target user: quant-interview candidates, ML researchers, students, and hiring ma
 
 | Metric | Target | How measured |
 |---|---|---|
-| Python engine throughput | >100k events/sec | `benchmarks/engine_benchmark.py` |
-| C++ engine throughput | >10M events/sec | `notebooks/05_benchmark_report.ipynb` |
+| Python engine throughput | ~10k events/sec (consumer laptop) | `benchmarks/engine_benchmark.py` |
+| C++ engine throughput | ~50k events/sec (consumer laptop, 4x Python) | `notebooks/05_benchmark_report.ipynb` |
+| C++ batch API stretch goal | >100k events/sec | future optimization |
 | Unit test coverage | >90% | `pytest --cov` |
 | RL market maker P&L | positive net vs baseline | `notebooks/03_rl_market_maker.ipynb` |
 | Real spread reproduction | within 20% of real data | `notebooks/04_calibration.ipynb` |

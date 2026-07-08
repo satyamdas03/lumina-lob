@@ -10,4 +10,4 @@ from lumina_lob.core import (
 )
 
 __all__ = ["OrderBook", "MatchingEngine", "Order", "Side", "OrderType", "PriceLevel"]
-__version__ = "0.1.0"
+__version__ = "0.1.4"
